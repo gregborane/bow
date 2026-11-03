@@ -311,7 +311,7 @@ The equilibrium concentration is recovered from a quadratic formula in `Isotherm
 
 ## Implementation reference and important compatibility notes
 
-| Draft ID | Documented model | Current Python `IsothermModel` ID |
+| Python code ID : | Documented model |
 |---:|----|
 | 1 | Linear |  
 | 2 | Langmuir | 
@@ -340,14 +340,12 @@ The equilibrium concentration is recovered from a quadratic formula in `Isotherm
 | 4 | `PoreDiffusion_qeq_Framework` |
 | 5 | `PoreDiffusion_ceq_Framework_twosite` |
 | 6 | `LDF_ceq_Framework_reaction` |
-| 7 | `PoreDiffusion_ceq_DualFlow_Framework` |
-
 
 ### Availability of isotherms across libraries
 
 The following table records `switch` branches, not full verification of scientific or numerical correctness.
 
-| MATLAB isotherm ID | LDF c | LDF q | Pore c | Pore q |
+| Isotherm ID | LDF c | LDF q | Pore c | Pore q |
 |---:|:---:|:---:|:---:|:---:|
 | 1 | Yes | Yes | Yes | Yes |
 | 2 | Yes | Yes | Yes | Yes |
@@ -386,11 +384,3 @@ The following table records `switch` branches, not full verification of scientif
 | `ep_p`, `kinf`, `km` | Porosity/nonbinding and retention-related parameters |
 | `t`, `Yp`, `Cp` | Solver times, packed state trajectory, protein outlet history |
 
-### Recommended simulation sequence
-
-1. Define the numeric model options and the required physical parameters.
-2. Calculate derived variables using `CalculateAllVariables(si)`.
-3. Compute salt and/or pH profiles as required by `ElutionType`.
-4. Select exactly one transport solver with `RateModel` (or a renamed `SolverType`).
-5. Inside that solver, evaluate the chosen isotherm in the needed direction (`ceq` or `qeq`).
-6. Integrate the coupled equations and extract outlet and intraparticle results.
