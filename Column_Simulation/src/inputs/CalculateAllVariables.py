@@ -73,7 +73,7 @@ class StoreInput:
     SOLUTION_INPUTS = ("Cso", "Csf", "pHo", "pHf", "nu")
     SIMULATION_INPUTS = (
         "Q", "CVfinal", "Nt", "Nz", "Nr", "InputType", "ElutionType",
-        "SolverModel", "IsothermModel", "Vinj", "CVwash", "CVG",
+        "SolverModel", "KineticModel", "IsothermModel", "Vinj", "CVwash", "CVG",
     )
     INPUT_NAMES = COLUMN_INPUTS + SOLUTION_INPUTS + SIMULATION_INPUTS
 
@@ -109,6 +109,7 @@ class StoreInput:
         self.Nr: int
         self.InputType: int
         self.ElutionType: int
+        self.KineticModel: int
         self.SolverModel: int
         self.IsothermModel: int
         self.Vinj: float
@@ -275,17 +276,17 @@ class StoreInput:
         dp_cm = self.dp * 1e-4  # Particle diameter converted from µm to cm.
 
         # Reynolds number depends on shared column, flow, and solution data.
-        if self.SolverModel in (3, 4, 5):
+        if self.KineticModel in (3, 4, 5):
             self.Re = self.u * dp_cm / self.nu
 
         for name, parameters in self.species.items():
             # Create the result object here, where its values are calculated.
             results = SpeciesResults()
 
-            if self.SolverModel == 2:                # Linear Driving Force
+            if self.KineticModel == 2:                # Linear Driving Force
                 results.n = self.theta * parameters.kc * self.L / self.v
 
-            elif self.SolverModel in (3, 4, 5):      # Pore diffusion
+            elif self.KineticModel in (3, 4, 5):      # Pore diffusion
                 results.Sc = self.nu / parameters.Do
                 results.Sh = (
                     1.09 / self.e

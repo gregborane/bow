@@ -2,7 +2,7 @@
 
 from numbers import Real
 
-from CalculateAllVariables import SpeciesParameters, StoreInput
+from inputs.CalculateAllVariables import SpeciesParameters, StoreInput
 
 
 class ErrorDetection:
@@ -43,12 +43,17 @@ class ErrorDetection:
         if elution not in range(1, 7):
             raise ValueError(f"ElutionType must be between 1 and 6; got {elution}")
 
-    def ValidateRate(self, solver: int):
+    def ValidateRate(self, kinetic: int):
         """1-6 = documented rate-model selections."""
-        if solver not in range(1, 7):
-            raise ValueError(f"SolverModel must be between 1 and 6; got {solver}")
+        if kinetic not in range(1, 7):
+            raise ValueError(f"KineticModel must be between 1 and 6; got {kinetic}")
+    
+    def ValidateSolver(self, solver: int):
+        """1-5 = documented rate-model selections."""
+        if solver not in range(1, 5):
+            raise ValueError(f"SolverModel must be between 1 and 5; got {solver}")
 
-    def ValidateIsotherm(self, isotherm: int, solver: int):
+    def ValidateIsotherm(self, isotherm: int, kinetic: int):
         """Keep the original allowed isotherms for each solver."""
         allowed_by_solver = {
             1: set(range(1, 15)),
@@ -56,11 +61,11 @@ class ErrorDetection:
             3: {1, 2, 4, 5, 6, 9, 12},
             4: {1, 2, 5, 6, 7, 9},
         }
-        allowed = allowed_by_solver.get(solver)
+        allowed = allowed_by_solver.get(kinetic)
         if allowed is not None and isotherm not in allowed:
             raise ValueError(
-                f"IsothermModel {isotherm} is not supported by SolverModel "
-                f"{solver}; allowed values: {sorted(allowed)}"
+                f"IsothermModel {isotherm} is not supported by KineticModel "
+                f"{kinetic}; allowed values: {sorted(allowed)}"
             )
         # As in the original project, no combinations are specified for solvers 5 or 6.
 
@@ -72,13 +77,13 @@ class ErrorDetection:
         required = [
             *input.COLUMN_INPUTS,
             "Q", "CVfinal", "Nt", "Nz", "Nr", "InputType",
-            "ElutionType", "SolverModel", "IsothermModel",
+            "ElutionType", "KineticModel", "SolverModel", "IsothermModel",
         ]
         if input.InputType == 2:
             required.extend(("Vinj", "CVwash"))
         if input.ElutionType != 1:
             required.extend(("CVG", "Cso", "Csf", "pHo", "pHf"))
-        if input.SolverModel in (3, 4, 5):
+        if input.KineticModel in (3, 4, 5):
             required.append("nu")
 
         missing = [name for name in required if getattr(input, name) is None]
@@ -91,9 +96,9 @@ class ErrorDetection:
                     f"Species {species_name!r} must use SpeciesParameters"
                 )
             species_required = []
-            if input.SolverModel == 2:
+            if input.KineticModel == 1:
                 species_required.append("kc")
-            elif input.SolverModel in (3, 4, 5):
+            elif input.KineticModel in (3, 4, 5):
                 species_required.append("Do")
 
             species_missing = [
@@ -125,13 +130,13 @@ class ErrorDetection:
             raise ValueError("Vinj and CVwash cannot be negative")
         if input.ElutionType != 1 and input.CVG <= 0:
             raise ValueError("CVG must be positive for gradient elution")
-        if input.SolverModel in (3, 4, 5) and input.nu <= 0:
+        if input.KineticModel in (3, 4, 5) and input.nu <= 0:
             raise ValueError("nu must be positive")
 
         for species_name, parameters in input.species.items():
-            if input.SolverModel == 2 and parameters.kc < 0:
+            if input.KineticModel == 2 and parameters.kc < 0:
                 raise ValueError(f"kc for species {species_name!r} cannot be negative")
-            if input.SolverModel in (3, 4, 5) and parameters.Do <= 0:
+            if input.KineticModel in (3, 4, 5) and parameters.Do <= 0:
                 raise ValueError(f"Do for species {species_name!r} must be positive")
 
     def ValidateAll(self, input: StoreInput):
@@ -140,8 +145,9 @@ class ErrorDetection:
         self.CheckRequiredInputs(input)
         self.ValidateInput(input.InputType)
         self.ValidateElution(input.ElutionType)
-        self.ValidateRate(input.SolverModel)
-        self.ValidateIsotherm(input.IsothermModel, input.SolverModel)
+        self.ValidateRate(input.KineticModel)
+        self.ValidateSolver(input.SolverModel)
+        self.ValidateIsotherm(input.IsothermModel, input.KineticModel)
         self.CheckRanges(input)
         return input
 
