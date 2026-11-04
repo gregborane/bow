@@ -5,7 +5,6 @@ from numpy.typing import ArrayLike, NDArray
 
 FloatArray = NDArray[np.float64]
 
-
 def _affinities(values: ArrayLike) -> FloatArray:
     """Normalise K to a nonempty, strictly positive (Nc,) array."""
     array = np.array(values, dtype=np.float64, copy=True)

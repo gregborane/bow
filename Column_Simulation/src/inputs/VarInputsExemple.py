@@ -46,10 +46,14 @@ def build_inputs() -> StoreInput:
     # =========================================================
     inputs.AddSpecies("Protein_A", SpeciesParameters(
         Do=1e-6,            # Molecular diffusivity (cm²/s)
+        K=1                 # Henry constant
+        qm=0.01             # Qmax
         kc=0.01,            # LDF mass-transfer coefficient (1/s)
     ))
     inputs.AddSpecies("Protein_B", SpeciesParameters(
         Do=5e-7,            # Replace example value with measured data
+        K=1                 # Henry Constant
+        qm=0.01             # Qmax
         kc=0.02,            # Replace example value with measured data
     ))
     # Add more species using another inputs.AddSpecies("name", SpeciesParameters(...)).
@@ -137,6 +141,3 @@ def display_results(inputs: StoreInput):
 
 if __name__ == "__main__":
     display_results(inputs)
-
-# %%
-

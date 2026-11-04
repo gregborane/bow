@@ -2,9 +2,15 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-ROOT_DIR = Path.cwd().resolve().parents[0]
-sys.path.insert(0, str(ROOT_DIR))
+import numpy as np
+from misc.isotherm import _affinities, _species_parameter, _state
+from numpy.typing import ArrayLike, NDArray
 
+SRC_DIR = Path.cwd().resolve().parents[1]
+sys.path.insert(0, str(SRC_DIR))
+
+
+FloatArray = NDArray[np.float64]
 
 # %% 
 @dataclass(frozen=True, eq=False)
@@ -24,7 +30,6 @@ class LangmuirIsotherm:
     qm: ArrayLike
     kinf: ArrayLike | None = None
     theta: float | None = None
-    model_id: ClassVar[int] = 2  # MATLAB s.IsothermModel
 
     def __post_init__(self) -> None:
         k = _affinities(self.K)

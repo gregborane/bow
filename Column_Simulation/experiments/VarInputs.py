@@ -6,8 +6,9 @@ settings are defined once. Add any number of species to the same StoreInput.
 import sys
 from pathlib import Path
 
-ROOT_DIR = Path.cwd().resolve().parents[1]
-sys.path.insert(0, str(ROOT_DIR))
+ROOT_DIR = Path.cwd().resolve().parents[0]
+SRC_DIR = ROOT_DIR / 'src'
+sys.path.insert(0, str(SRC_DIR))
 
 from inputs.CalculateAllVariables import (
     ColumnParameters,
@@ -52,10 +53,8 @@ def build_inputs() -> StoreInput:
     inputs.AddSpecies("Protein_A", SpeciesParameters(
         Do=1e-6,            # Molecular diffusivity (cm²/s)
         kc=0.01,            # LDF mass-transfer coefficient (1/s)
-    ))
-    inputs.AddSpecies("Protein_B", SpeciesParameters(
-        Do=5e-7,            # Replace example value with measured data
-        kc=0.02,            # Replace example with measured data
+        K = 1,              # Henry Constant
+        qm = 1000,          # Maximum quantity adsorbed 
     ))
     # Add more species using another inputs.AddSpecies("name", SpeciesParameters(...)).
 
@@ -129,6 +128,8 @@ def display_results(inputs: StoreInput):
         print(f"{name}:")
         print(f"  Molecular diffusivity Do = {parameters.Do}")
         print(f"  LDF coefficient kc       = {parameters.kc}")
+        print(f"  Henry constant           = {parameters.K}")
+        print(f"  Qm                       = {parameters.qm}")
 
         if inputs.SolverModel == 2:
             print(f"  LDF parameter n          = {results.n}")

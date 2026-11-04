@@ -40,6 +40,8 @@ class SpeciesParameters:
 
     Do:  float | None = None     # Molecular diffusivity (cm²/s)
     kc:  float | None = None     # LDF mass-transfer rate constant (1/s)
+    K: float | None = None       # Henry's constant law
+    qm : float | None = None     # Maximum quantity adsorbed on materials
 
 
 @dataclass
@@ -115,6 +117,8 @@ class StoreInput:
         self.Vinj: float
         self.CVwash: float
         self.CVG: float
+        self.K: float
+        self.qm: float
 
         self.Rp: float
         self.Ac: float
