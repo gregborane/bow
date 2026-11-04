@@ -1,7 +1,13 @@
+import sys
 from importlib import import_module
 from pathlib import Path
 
-from inputs.experiments.VarInputs import display_results, inputs
+ROOT_DIR = Path.cwd().resolve().parents[0]
+sys.path.insert(0, str(ROOT_DIR))
+
+print(ROOT_DIR)
+
+from experiments.VarInputs import display_results, inputs
 
 display_results(inputs)
 
