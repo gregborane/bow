@@ -7,6 +7,7 @@ mass-transfer variables are stored in dictionaries keyed by species name.
 
 from collections.abc import Mapping
 from dataclasses import dataclass, fields
+from numbers import Real
 
 import numpy as np
 
@@ -42,6 +43,11 @@ class SpeciesParameters:
     kc:  float | None = None     # LDF mass-transfer rate constant (1/s)
     K: float | None = None       # Henry's constant law
     qm : float | None = None     # Maximum quantity adsorbed on materials
+
+    Cfeed: float | None = None   # Feed concentration, same units as mobile-phase c
+    kb: float | None = None      # Adsorption rate coefficient (driving-force dependent)
+    Dl: float | None = None      # Axial dispersion coefficient (cm²/s)
+    De: float | None = None      # Effective pore diffusivity (cm²/s)
 
 
 @dataclass
@@ -146,6 +152,24 @@ class StoreInput:
         # Species are stored once in this simulation, not as duplicated models.
         self.species = {}
         self.species_results = {}
+
+    def __getattr__(self, name):
+        """Expose pore inputs as (Nc,) vectors in species registration order.
+
+        Called only when an ordinary attribute is absent, so older callers
+        that explicitly assigned a scalar or vector on the store still work.
+        """
+        if name not in ("Cfeed", "kb", "Dl", "De"):
+            raise AttributeError(name)
+        values = []
+        for species_name, parameters in self.species.items():
+            value = getattr(parameters, name)
+            if (isinstance(value, bool) or not isinstance(value, Real)
+                    or not np.isfinite(value) or value < 0 or (name == "De" and value == 0)):
+                requirement = "positive" if name == "De" else "nonnegative"
+                raise ValueError(f"{species_name}.{name} must be a finite {requirement} number")
+            values.append(value)
+        return np.asarray(values, dtype=float)
 
     def _set_group(self, parameters):
         """Copy fields from a column or solution parameter dataclass."""
@@ -309,4 +333,5 @@ class StoreInput:
                 "call CalculateAllVariables() first"
             )
         return self.species_results[name]
+
 

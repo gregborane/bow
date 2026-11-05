@@ -2,7 +2,10 @@
 
 from numbers import Real
 
-from inputs.CalculateAllVariables import SpeciesParameters, StoreInput
+from Column_Simulation.src.inputs.CalculateAllVariables import (
+    SpeciesParameters,
+    StoreInput,
+)
 
 
 class ErrorDetection:

@@ -3,14 +3,13 @@
 All editable inputs live here. Column, solution, operating, and numerical
 settings are defined once. Add any number of species to the same StoreInput.
 """
-
-from CalculateAllVariables import (
+from Column_Simulation.src.inputs.CalculateAllVariables import (
     ColumnParameters,
     SolutionParameters,
     SpeciesParameters,
     StoreInput,
 )
-from VarError import ErrorDetection
+from Column_Simulation.src.inputs.VarError import ErrorDetection
 
 
 def build_inputs() -> StoreInput:
@@ -46,15 +45,9 @@ def build_inputs() -> StoreInput:
     # =========================================================
     inputs.AddSpecies("Protein_A", SpeciesParameters(
         Do=1e-6,            # Molecular diffusivity (cm²/s)
-        K=1                 # Henry constant
-        qm=0.01             # Qmax
         kc=0.01,            # LDF mass-transfer coefficient (1/s)
-    ))
-    inputs.AddSpecies("Protein_B", SpeciesParameters(
-        Do=5e-7,            # Replace example value with measured data
-        K=1                 # Henry Constant
-        qm=0.01             # Qmax
-        kc=0.02,            # Replace example value with measured data
+        K = 1,              # Henry Constant
+        qm = 1000,          # Maximum quantity adsorbed 
     ))
     # Add more species using another inputs.AddSpecies("name", SpeciesParameters(...)).
 
@@ -77,11 +70,12 @@ def build_inputs() -> StoreInput:
     # Model selections (original numeric codes retained)
     inputs.InputType = 1        # 1 step | 2 pulse
     inputs.ElutionType = 1      # 1 isocratic | 2-6 gradient types
-    inputs.SolverModel = 3      # 2 LDF c | 3,4,5 pore diffusion
+    inputs.KineticModel = 3     # 2 LDF c | 3,4,5 pore diffusion
+    inputs.SolverModel = 1      # 1 FDM | 5 WENO 
     inputs.IsothermModel = 2    # 2 Langmuir
 
     # =========================================================
-    # 5. VALIDATION AND CALCULATION
+    # 5. VALIDATION AND CALCULATIONprint(Path.cwd())
     # =========================================================
     ErrorDetection().ValidateAll(inputs)
     inputs.CalculateAllVariables()
@@ -127,6 +121,8 @@ def display_results(inputs: StoreInput):
         print(f"{name}:")
         print(f"  Molecular diffusivity Do = {parameters.Do}")
         print(f"  LDF coefficient kc       = {parameters.kc}")
+        print(f"  Henry constant           = {parameters.K}")
+        print(f"  Qm                       = {parameters.qm}")
 
         if inputs.SolverModel == 2:
             print(f"  LDF parameter n          = {results.n}")
@@ -141,3 +137,6 @@ def display_results(inputs: StoreInput):
 
 if __name__ == "__main__":
     display_results(inputs)
+
+# %%
+

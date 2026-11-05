@@ -3,20 +3,13 @@
 All editable inputs live here. Column, solution, operating, and numerical
 settings are defined once. Add any number of species to the same StoreInput.
 """
-import sys
-from pathlib import Path
-
-ROOT_DIR = Path.cwd().resolve().parents[0]
-SRC_DIR = ROOT_DIR / 'src'
-sys.path.insert(0, str(SRC_DIR))
-
-from inputs.CalculateAllVariables import (
+from Column_Simulation.src.inputs.CalculateAllVariables import (
     ColumnParameters,
     SolutionParameters,
     SpeciesParameters,
     StoreInput,
 )
-from inputs.VarError import ErrorDetection
+from Column_Simulation.src.inputs.VarError import ErrorDetection
 
 
 def build_inputs() -> StoreInput:
@@ -55,6 +48,10 @@ def build_inputs() -> StoreInput:
         kc=0.01,            # LDF mass-transfer coefficient (1/s)
         K = 1,              # Henry Constant
         qm = 1000,          # Maximum quantity adsorbed 
+        kb = 0.01,          # Ads rate constant
+        Dl = 1e-4,          # Axial dispersion coefficient
+        De = 1e-7,          # Effective Pore diffusivity
+        Cfeed = 1           # Molecular concentration
     ))
     # Add more species using another inputs.AddSpecies("name", SpeciesParameters(...)).
 
@@ -75,11 +72,11 @@ def build_inputs() -> StoreInput:
     inputs.CVG = 5          # Gradient duration (column volumes)
 
     # Model selections (original numeric codes retained)
-    inputs.InputType = 1        # 1 step | 2 pulse
+    inputs.InputType = 2        # 1 step | 2 pulse
     inputs.ElutionType = 1      # 1 isocratic | 2-6 gradient types
     inputs.KineticModel = 3     # 2 LDF c | 3,4,5 pore diffusion
     inputs.SolverModel = 1      # 1 FDM | 5 WENO 
-    inputs.IsothermModel = 2    # 2 Langmuir
+    inputs.IsothermModel = 1    # 2 Langmuir
 
     # =========================================================
     # 5. VALIDATION AND CALCULATIONprint(Path.cwd())

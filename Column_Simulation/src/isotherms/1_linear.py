@@ -1,16 +1,11 @@
 """Linear adsorption isotherms for BOW.
 """
-import sys
 from dataclasses import dataclass
-from pathlib import Path
 
 import numpy as np
-from misc.isotherm import _affinities, _species_parameter, _state
 from numpy.typing import ArrayLike, NDArray
 
-SRC_DIR = Path.cwd().resolve().parents[1]
-sys.path.insert(0, str(SRC_DIR))
-
+from Column_Simulation.src.misc.isotherm import _affinities, _species_parameter, _state
 
 FloatArray = NDArray[np.float64]
 
