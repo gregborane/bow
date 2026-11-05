@@ -29,6 +29,12 @@ Next in line is incorporation of :
 | Error checks                  |      Y      |   N    |
 | Template builders             |      Y      |   N    |
 
+| Outputs Builders              | Implemented | GoLang |
+|:------------------------------|:-----------:|:------:|
+| Save InputFile                |      Y      |   N    |
+| Save chromatogram             |      Y      |   N    |
+| Save results table            |      Y      |   N    |
+
 ### 2. Isotherms
 
 | Isotherms                                   | Implemented | GoLang |
@@ -53,8 +59,8 @@ Next in line is incorporation of :
 |:---------------------------------|:-----------:|:------:|
 | 1\. LDF q driving force          |      N      |   N    |
 | 2\. LDF c driving force          |      N      |   N    |
-| 3\. Pore diffusion c equilibrium |      N      |   N    |
-| 4\. Pore diffusion q equilibrium |      N      |   N    |
+| 3\. Pore diffusion c equilibrium |      Y      |   N    |
+| 4\. Pore diffusion q equilibrium |      Y      |   N    |
 | 5\. Two site pore diffusion      |      N      |   N    |
 | 6\. LDF with kinetics            |      N      |   N    |
 
@@ -62,7 +68,7 @@ Next in line is incorporation of :
 
 | Solvers                                   | Implemented | GoLang |
 |:------------------------------------------|:-----------:|:------:|
-| Finite Difference Method                  |      N      |   N    |
+| Finite Difference Method                  |      Y      |   N    |
 | Finite Volume Method                      |      N      |   N    |
 | Finite Element Method                     |      N      |   N    |
 | Orthogonal Collocation on Finite Elements |      N      |   N    |

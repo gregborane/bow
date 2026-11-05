@@ -47,10 +47,21 @@ def build_inputs() -> StoreInput:
         Do=1e-6,            # Molecular diffusivity (cm²/s)
         kc=0.01,            # LDF mass-transfer coefficient (1/s)
         K = 1,              # Henry Constant
-        qm = 1000,          # Maximum quantity adsorbed 
+        qm = 100,          # Maximum quantity adsorbed 
         kb = 0.01,          # Ads rate constant
         Dl = 1e-4,          # Axial dispersion coefficient
         De = 1e-7,          # Effective Pore diffusivity
+        Cfeed = 1           # Molecular concentration
+    ))
+
+    inputs.AddSpecies("Protein_B", SpeciesParameters(
+        Do=4e-6,            # Molecular diffusivity (cm²/s)
+        kc=0.02,            # LDF mass-transfer coefficient (1/s)
+        K = 20,              # Henry Constant
+        qm = 10,            # Maximum quantity adsorbed 
+        kb = 1,            # Ads rate constant
+        Dl = 1e-3,          # Axial dispersion coefficient
+        De = 1e-6,          # Effective Pore diffusivity
         Cfeed = 1           # Molecular concentration
     ))
     # Add more species using another inputs.AddSpecies("name", SpeciesParameters(...)).
@@ -76,7 +87,7 @@ def build_inputs() -> StoreInput:
     inputs.ElutionType = 1      # 1 isocratic | 2-6 gradient types
     inputs.KineticModel = 3     # 2 LDF c | 3,4,5 pore diffusion
     inputs.SolverModel = 1      # 1 FDM | 5 WENO 
-    inputs.IsothermModel = 1    # 2 Langmuir
+    inputs.IsothermModel = 2    # 2 Langmuir
 
     # =========================================================
     # 5. VALIDATION AND CALCULATIONprint(Path.cwd())
