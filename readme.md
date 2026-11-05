@@ -12,6 +12,44 @@ Developed in python to quickly implement isotherms and kinetics models.
 Eventual port to golang will be envisaged for faster computation while keeping
 easiness of implementation.
 
+## Installation and use : 
+
+### Installation
+
+```
+python -m pip install -e .
+```
+
+### Usage
+
+```
+cd $ROOT_DIRECTORY
+cd %SRC_DIRECTORY
+```
+
+modify the VarInputs.py file and setup the parameters
+
+```
+vim experiments/VarInputs.py
+```
+
+finally run the main file
+
+```
+python main.py
+```
+
+### Outputs
+
+at the moment, the results are stored in 
+
+```
+$ROOT_DIR/experiemnts/run_1/\
+run.csv
+run.png
+VarInputs.py # used
+```
+
 ## Goals : 
 
 Next in line is incorporation of : 
