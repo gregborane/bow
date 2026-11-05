@@ -33,8 +33,8 @@ Next in line is incorporation of :
 
 | Isotherms                                   | Implemented | GoLang |
 |:--------------------------------------------|:-----------:|:------:|
-| 1\. Linear                                  |      N      |   N    |
-| 2\. Langmuir                                |      N      |   N    |
+| 1\. Linear                                  |      Y      |   N    |
+| 2\. Langmuir                                |      Y      |   N    |
 | 3\. Ion Exchange mass action                |      N      |   N    |
 | 4\. Steric mass action                      |      N      |   N    |
 | 5\. Steric mass action linear equation      |      N      |   N    |
