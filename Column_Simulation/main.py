@@ -91,3 +91,5 @@ if __name__ == "__main__":
                               and Path(script).name == "main.py")
     results = cli(sys.argv[1:] if launched_as_script else ())
 
+# %%
+

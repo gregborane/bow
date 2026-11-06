@@ -2,14 +2,30 @@
 import csv
 import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 from shutil import copyfile
 from tempfile import TemporaryDirectory
 
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import colormaps
 
 from Column_Simulation import paths
 
+
+def open_image(path):
+    path = str(path)
+
+    if sys.platform == "win32":
+        os.startfile(path)
+
+    elif sys.platform == "darwin":
+        subprocess.Popen(["open", path])
+
+    else:  # Linux
+        subprocess.Popen(["xdg-open", path])
 
 def prepare_table(results, component_names=None):
     """Return one table with time first, plus species labels in simulation order."""
@@ -45,24 +61,47 @@ def write_csv(path, table, names):
 
 
 def breakthrough_figure(table, names, signal_name=None, time_unit="s", signal_unit=None):
-    from matplotlib.figure import Figure
-    from matplotlib import colormaps
-
-    fig = Figure(figsize=(7.2, 4.5), layout="constrained")
-    ax = fig.subplots()
-    colors = colormaps["tab10"].colors if len(names) <= 10 else colormaps["turbo"](np.linspace(.05, .95, len(names)))
+    fig, ax = plt.subplots(
+        figsize=(7.2, 4.5),
+        layout="constrained"
+    )
+    colors = (
+        colormaps["tab10"].colors
+        if len(names) <= 10
+        else colormaps["turbo"](
+            np.linspace(.05, .95, len(names))
+        )
+    )
     for index, name in enumerate(names):
-        ax.plot(table[:, 0], table[:, index+1], label=name, color=colors[index],
-                linewidth=1.9, marker="o" if len(table) == 1 else None)
+        ax.plot(
+            table[:, 0],
+            table[:, index + 1],
+            label=name,
+            color=colors[index],
+            linewidth=1.9,
+            marker="o" if len(table) == 1 else None
+        )
     ax.set_xlabel(f"Time ({time_unit or 's'})", fontsize=12)
     label = signal_name or "Outlet concentration"
-    ax.set_ylabel(f"{label} ({signal_unit})" if signal_unit else label, fontsize=12)
-    ax.set_title("Column breakthrough", loc="left", fontsize=15, pad=12)
+    ax.set_ylabel(
+        f"{label} ({signal_unit})" if signal_unit else label,
+        fontsize=12
+    )
+    ax.set_title(
+        "Column breakthrough",
+        loc="left",
+        fontsize=15,
+        pad=12
+    )
     ax.grid(color="#dce2e6", linewidth=.6)
     ax.set_axisbelow(True)
     ax.spines[["top", "right"]].set_visible(False)
     if len(names) > 1:
-        ax.legend(frameon=False, loc="upper left", bbox_to_anchor=(1, 1))
+        ax.legend(
+            frameon=False,
+            loc="upper left",
+            bbox_to_anchor=(1, 1)
+        )
     return fig
 
 
@@ -95,32 +134,83 @@ def _publish(stage, directory, filenames):
         lock.rmdir()
 
 
-def save_simulation_outputs(results, experiment_id=1, output_dir=None, signal_name=None,
-                            time_unit="s", signal_unit=None, *, component_names=None,
-                            config_file=None):
-    """Return (csv_path, png_path). output_dir overrides the exact run directory.
+def save_simulation_outputs(
+    results,
+    experiment_id=1,
+    output_dir=None,
+    signal_name=None,
+    time_unit="s",
+    signal_unit=None,
+    *,
+    component_names=None,
+    config_file=None,
+):
+    """Return (csv_path, png_path).
 
-    Relative overrides resolve against the project root. Otherwise BOW_OUTPUT_DIR,
-    when configured, replaces experiments/ as the parent of run_<id>. config_file
-    optionally archives the experiment source; it is not a serialization of inputs.
-    Axis unit labels describe the supplied values; no conversion is performed.
+    Export simulation results and display the breakthrough figure.
+
+    Jupyter: inline display.
+    Terminal: open with the operating system's default image viewer.
     """
-    if (isinstance(experiment_id, bool) or not isinstance(experiment_id, (int, str))
-            or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", str(experiment_id))):
-        raise ValueError("experiment_id must be a nonempty alphanumeric ID (internal '-' and '_' allowed)")
+
+    if (
+        isinstance(experiment_id, bool)
+        or not isinstance(experiment_id, (int, str))
+        or not re.fullmatch(
+            r"[A-Za-z0-9][A-Za-z0-9_-]*",
+            str(experiment_id)
+        )
+    ):
+        raise ValueError(
+            "experiment_id must be a nonempty alphanumeric ID "
+            "(internal '-' and '_' allowed)"
+        )
+
     table, names = prepare_table(results, component_names)
-    base = paths.OUTPUT_DIR if "BOW_OUTPUT_DIR" in os.environ else paths.EXPERIMENTS_DIR
-    directory = (paths.project_path(output_dir) if output_dir is not None
-                 else base / f"run_{experiment_id}")
+    base = (
+        paths.OUTPUT_DIR
+        if "BOW_OUTPUT_DIR" in os.environ
+        else paths.EXPERIMENTS_DIR
+    )
+    directory = (
+        paths.project_path(output_dir)
+        if output_dir is not None
+        else base / f"run_{experiment_id}"
+    )
     directory.mkdir(parents=True, exist_ok=True)
+    csv_path = directory / "run.csv"
+    png_path = directory / "run.png"
     with TemporaryDirectory(dir=directory) as staging:
         stage = Path(staging)
         write_csv(stage / "run.csv", table, names)
-        fig = breakthrough_figure(table, names, signal_name, time_unit, signal_unit)
-        fig.savefig(stage / "run.png", dpi=300, format="png")
+        fig = breakthrough_figure(
+            table,
+            names,
+            signal_name,
+            time_unit,
+            signal_unit
+        )
+        fig.savefig(
+            stage / "run.png",
+            dpi=300,
+            format="png"
+        )
         files = ["run.csv", "run.png"]
         if config_file is not None:
-            copyfile(paths.input_path(config_file), stage / "VarInputs.py")
+            copyfile(
+                paths.input_path(config_file),
+                stage / "VarInputs.py"
+            )
             files.append("VarInputs.py")
         _publish(stage, directory, files)
-    return directory / "run.csv", directory / "run.png"
+    try:
+        # Jupyter Notebook
+        if "ipykernel" in sys.modules:
+            from IPython.display import display
+            display(fig)
+        # Normal Python / terminal / Iron.nvim
+        else:
+            open_image(png_path)
+    finally:
+        plt.close(fig)
+    return csv_path, png_path

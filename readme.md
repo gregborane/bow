@@ -14,40 +14,45 @@ easiness of implementation.
 
 ## Installation and use : 
 
-### Installation
-
-```
-python -m pip install -e .
-```
-
 ### Usage
 
 ```
-cd $ROOT_DIRECTORY
-cd %SRC_DIRECTORY
+cd $ROOT_DIRECTORY # main folder containing the .exec file
+cd $SRC_DIRECTORY # folder containing the back end of the software
+cd $EXPERIEMENTS_DIRECTORY # folder containing simulation runs
 ```
 
-modify the VarInputs.py file and setup the parameters
+### Installation
+
+```
+cd $ROOT_DIRECTORY 
+python -m pip install -e .
+```
+
+### Run a Simulation
+
+Modify the VarInputs.py file and set up the parameters.
 
 ```
 vim experiments/VarInputs.py
 ```
 
-finally run the main file
+Finally run the main file.
 
 ```
+cd $ROOT_DIRECTORY
 python main.py
 ```
 
 ### Outputs
 
-at the moment, the results are stored in 
+At the moment, the results are stored in 
 
 ```
 $ROOT_DIR/experiemnts/run_1/\
 run.csv
 run.png
-VarInputs.py # used
+VarInputs.py # input used
 ```
 
 ## Goals : 
@@ -58,7 +63,9 @@ Next in line is incorporation of :
 - Pore diffusion c\q equilibrium
 - Finite difference method
 
-### 1. Inputs Builders
+### 1. Inputs / Ouputs Builders
+
+#### 1. Inputs
 
 | Inputs Builders               | Implemented | GoLang |
 |:------------------------------|:-----------:|:------:|
@@ -66,6 +73,8 @@ Next in line is incorporation of :
 | Dependent parameters          |      Y      |   N    |
 | Error checks                  |      Y      |   N    |
 | Template builders             |      Y      |   N    |
+
+#### 2. Outputs
 
 | Outputs Builders              | Implemented | GoLang |
 |:------------------------------|:-----------:|:------:|
@@ -111,3 +120,15 @@ Next in line is incorporation of :
 | Finite Element Method                     |      N      |   N    |
 | Orthogonal Collocation on Finite Elements |      N      |   N    |
 | Weighted Essentially Non-Oscillatory      |      N      |   N    |
+
+### 5. Software wise
+
+| User Experience                           | Implemented | GoLang |
+|:------------------------------------------|:-----------:|:------:|
+| GUI                                       |      N      |   N    |
+| Use a chosen file for inputs              |      N      |   N    |
+| Use fail safe for inputs                  |      Y      |   N    |
+| Use .json file for inputs                 |      N      |   N    |
+| Custom save location for ouputs           |      N      |   N    |
+| Use fail safe location for ouputs         |      Y      |   N    |
+| Custom format for output image            |      N      |   N    |

@@ -7,7 +7,7 @@ name = "bow-chromatography"
 version = "0.1.0"
 description = "BOW chromatography column simulation"
 requires-python = ">=3.11"
-dependencies = ["numpy", "scipy"]
+dependencies = ["numpy", "scipy", "matplotlib"]
 
 [project.scripts]
 bow-sim = "Column_Simulation.main:console"
