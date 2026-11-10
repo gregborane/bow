@@ -2,7 +2,10 @@ from importlib import import_module
 from pathlib import Path
 from pkgutil import iter_modules
 
-from Column_Simulation.src.misc.results_output import DEFAULT_EXPERIMENT_ID, save_simulation_outputs
+from Column_Simulation.src.misc.results_output import (
+    DEFAULT_EXPERIMENT_ID,
+    save_simulation_outputs,
+)
 
 
 def display_model(isotherm, kinetic, solver):

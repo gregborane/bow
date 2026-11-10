@@ -1,0 +1,80 @@
+From 7985f8c1ec4842704254cd884771b33cb961e569 Mon Sep 17 00:00:00 2001
+From: greg borane <kma.4001@gmail.com>
+Date: Tue, 10 Nov 2026 16:44:22 -0500
+Subject: [PATCH] Keep kernel arguments out of the simulation CLI
+
+---
+ Column_Simulation/experiments/VarInputs.py | 17 +++++++++++++++--
+ tests/test_simulation_entry.py             | 10 ++++++++++
+ 2 files changed, 25 insertions(+), 2 deletions(-)
+
+diff --git a/Column_Simulation/experiments/VarInputs.py b/Column_Simulation/experiments/VarInputs.py
+index 77d9907..315436e 100644
+--- a/Column_Simulation/experiments/VarInputs.py
++++ b/Column_Simulation/experiments/VarInputs.py
+@@ -3,6 +3,7 @@
+ All editable inputs live here. Column, solution, operating, and numerical
+ settings are defined once. Add any number of species to the same StoreInput.
+ """
++import sys
+ from argparse import ArgumentParser
+ from pathlib import Path
+ 
+@@ -158,6 +159,14 @@ def display_results(inputs: StoreInput):
+     print("==========================================\n")
+ 
+ 
++def _config_source():
++    # Editors can execute the buffer in a kernel namespace without __file__.
++    if "__file__" in globals():
++        return Path(__file__).resolve()
++    from Column_Simulation.experiments import VarInputs
++    return Path(VarInputs.__file__).resolve()
++
++
+ def run_simulation(custom_inputs=None, *, experiment_id=None):
+     """Launch the configured experiment or use a caller-supplied input object."""
+     selected_inputs = inputs if custom_inputs is None else custom_inputs
+@@ -167,7 +176,7 @@ def run_simulation(custom_inputs=None, *, experiment_id=None):
+         experiment_id=EXPERIMENT_ID if experiment_id is None else experiment_id,
+         output_dir=OUTPUT_DIR,
+         open_external_display=OPEN_EXTERNAL_DISPLAY,
+-        config_file=Path(__file__) if EXPORT_CONFIG else None,
++        config_file=_config_source() if EXPORT_CONFIG else None,
+     )
+ 
+ 
+@@ -190,4 +199,8 @@ def console(argv=None):
+ 
+ 
+ if __name__ == "__main__":
+-    console()
++    if sys.argv and Path(sys.argv[0]).resolve() == _config_source():
++        console()
++    else:
++        # In an editor kernel, the process arguments belong to the kernel.
++        results = run_simulation()
+diff --git a/tests/test_simulation_entry.py b/tests/test_simulation_entry.py
+index 78a6761..346047d 100644
+--- a/tests/test_simulation_entry.py
++++ b/tests/test_simulation_entry.py
+@@ -38,6 +38,16 @@ assert VarInputs.main is main
+         self.assertEqual(proc.stdout, "")
+         self.assertEqual(list(self.directory.iterdir()), [])
+ 
++    def test_kernel_exec_uses_configured_run_and_exports_source(self):
++        source = Path(VarInputs.__file__)
++        code = compile(source.read_bytes(), str(source), "exec")
++        namespace = {"__name__": "__main__"}
++        argv = ["ipykernel_launcher.py", "-f", "kernel.json", "--IPKernelApp.extensions=iron_image"]
++        with patch.object(sys, "argv", argv), redirect_stdout(StringIO()):
++            exec(code, namespace)
++        self.assertEqual(namespace["results"].breakthrough.shape, (100, 2))
++        self.assertEqual(Path("run_1/VarInputs.py").read_bytes(), source.read_bytes())
++
+     def test_custom_input_and_relative_output(self):
+         custom = VarInputs.build_inputs()
+         custom.Nt = 7
+-- 
+2.52.0
+

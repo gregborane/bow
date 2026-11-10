@@ -179,6 +179,7 @@ def console(argv=None):
     results = run_simulation(experiment_id=args.experiment_id)
     if args.output:
         import numpy as np
+
         from Column_Simulation.paths import output_path
 
         if results is None:
