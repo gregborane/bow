@@ -1,13 +1,8 @@
-import sys
-from argparse import ArgumentParser
 from importlib import import_module
 from pathlib import Path
 from pkgutil import iter_modules
 
-from Column_Simulation.experiments import VarInputs
-from Column_Simulation.experiments.VarInputs import display_results, inputs
-from Column_Simulation.paths import output_path
-from Column_Simulation.src.misc.results_output import save_simulation_outputs
+from Column_Simulation.src.misc.results_output import DEFAULT_EXPERIMENT_ID, save_simulation_outputs
 
 
 def display_model(isotherm, kinetic, solver):
@@ -28,7 +23,8 @@ def selected(group, identifier):
     return Path(module.__file__), module
 
 
-def run(inputs, *, experiment_id=1, output_dir=None):
+def run(inputs, *, experiment_id=DEFAULT_EXPERIMENT_ID, output_dir=None,
+        config_file=None, open_external_display=False):
     """Run the selected pore experiment and return time-indexed fields."""
     import numpy as np
 
@@ -54,42 +50,6 @@ def run(inputs, *, experiment_id=1, output_dir=None):
     results = kinetics_model.Model(inputs, iso, space).simulate()
     csv_path, png_path = save_simulation_outputs(
         results, experiment_id, output_dir, component_names=inputs.species,
-        config_file=VarInputs.__file__)
+        config_file=config_file, open_external_display=open_external_display)
     print(f"Saved {csv_path}\nSaved {png_path}")
     return results
-
-
-def cli(argv=()):
-    """Run the configured experiment and optionally export all result fields."""
-    import numpy as np
-
-    parser = ArgumentParser(description="Run the BOW column simulation")
-    parser.add_argument("--output", help="Save results as NPZ under the output directory")
-    parser.add_argument("--experiment-id", default="1", help="Identifier for the run directory")
-    args = parser.parse_args(argv)
-    display_results(inputs)
-    results = run(inputs, experiment_id=args.experiment_id)
-    if args.output:
-        if results is None:
-            parser.error("The selected kinetic model produced no results")
-        target = output_path(args.output)
-        with target.open("wb") as stream:
-            np.savez_compressed(stream, **vars(results))
-        print(f"Saved {target}")
-    return results
-
-
-def console():
-    cli(sys.argv[1:])
-
-
-if __name__ == "__main__":
-    # An editor can execute this file in the kernel's __main__ namespace.
-    # Only a launch of this script owns the process command-line arguments.
-    script = globals().get("__file__")
-    launched_as_script = bool(script and sys.argv and Path(sys.argv[0]).resolve() == Path(script).resolve()
-                              and Path(script).name == "main.py")
-    results = cli(sys.argv[1:] if launched_as_script else ())
-
-# %%
-

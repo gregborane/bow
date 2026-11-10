@@ -3,6 +3,10 @@
 All editable inputs live here. Column, solution, operating, and numerical
 settings are defined once. Add any number of species to the same StoreInput.
 """
+from argparse import ArgumentParser
+from pathlib import Path
+
+from Column_Simulation import main
 from Column_Simulation.src.inputs.CalculateAllVariables import (
     ColumnParameters,
     SolutionParameters,
@@ -90,15 +94,19 @@ def build_inputs() -> StoreInput:
     inputs.IsothermModel = 2    # 2 Langmuir
 
     # =========================================================
-    # 5. VALIDATION AND CALCULATIONprint(Path.cwd())
+    # 5. VALIDATION AND CALCULATION
     # =========================================================
     ErrorDetection().ValidateAll(inputs)
     inputs.CalculateAllVariables()
     return inputs
 
 
-# One StoreInput instance represents the entire physical simulation.
+# Run configuration
 inputs = build_inputs()
+EXPERIMENT_ID = main.DEFAULT_EXPERIMENT_ID  # Change to a name or number for this run.
+OUTPUT_DIR = None  # None selects ./run_<experiment_id>/ in the working directory.
+OPEN_EXTERNAL_DISPLAY = False
+EXPORT_CONFIG = True
 
 
 def display_results(inputs: StoreInput):
@@ -150,8 +158,36 @@ def display_results(inputs: StoreInput):
     print("==========================================\n")
 
 
+def run_simulation(custom_inputs=None, *, experiment_id=None):
+    """Launch the configured experiment or use a caller-supplied input object."""
+    selected_inputs = inputs if custom_inputs is None else custom_inputs
+    display_results(selected_inputs)
+    return main.run(
+        selected_inputs,
+        experiment_id=EXPERIMENT_ID if experiment_id is None else experiment_id,
+        output_dir=OUTPUT_DIR,
+        open_external_display=OPEN_EXTERNAL_DISPLAY,
+        config_file=Path(__file__) if EXPORT_CONFIG else None,
+    )
+
+
+def console(argv=None):
+    parser = ArgumentParser(description="Run the BOW column simulation")
+    parser.add_argument("--experiment-id", help="Override the configured experiment ID")
+    parser.add_argument("--output", help="Export all result fields to an additional NPZ file")
+    args = parser.parse_args(argv)
+    results = run_simulation(experiment_id=args.experiment_id)
+    if args.output:
+        import numpy as np
+        from Column_Simulation.paths import output_path
+
+        if results is None:
+            parser.error("The selected kinetic model produced no results")
+        target = output_path(args.output)
+        with target.open("wb") as stream:
+            np.savez_compressed(stream, **vars(results))
+        print(f"Saved {target}")
+
+
 if __name__ == "__main__":
-    display_results(inputs)
-
-# %%
-
+    console()

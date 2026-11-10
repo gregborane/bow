@@ -49,14 +49,14 @@ Each interval uses SciPy `solve_ivp(method="BDF", rtol=1e-6, atol=1e-10)`. The f
 
 The exporter validates time, species names and finite signal values, then uses one table for both files. The CSV starts with `time` and has one `outlet_concentration_<species>` column per protein in registration order. The PNG shows a line per protein against time in seconds. BOW reports concentration directly; detector response would need a separate calibration.
 
-The default destination is `Column_Simulation/experiments/run_1/`. An experiment ID chooses `run_<id>/`. An explicit `output_dir` chooses the exact directory, while `BOW_OUTPUT_DIR` overrides the parent of the run folders. Repeating an ID replaces the CSV, PNG and experiment source copy. For optional NPZ export, a relative `--output` filename follows the separate full-field output policy in [the README](../readme.md).
+The default destination is `./run_1/`. An experiment ID chooses `run_<id>/`. An explicit `output_dir` chooses the exact directory, resolved relative to the working directory. Repeating an ID replaces the CSV, PNG and experiment source copy. For optional NPZ export, a relative `--output` filename follows the separate full-field output policy in [the README](../readme.md).
 
 ## Reproduce the workflow
 
 From the checkout root, after editable installation:
 
 ```sh
-python -m Column_Simulation.main --experiment-id baseline
+python -m Column_Simulation.experiments.VarInputs --experiment-id baseline
 python -m unittest discover -s tests -v
 ```
 

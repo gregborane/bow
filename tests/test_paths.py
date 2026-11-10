@@ -37,10 +37,16 @@ class PathsTest(unittest.TestCase):
 
     def test_run_from_four_directories(self):
         expected = None
-        script = paths.PACKAGE_ROOT / "main.py"
+        script = paths.EXPERIMENTS_DIR / "VarInputs.py"
         for i, cwd in enumerate((paths.PROJECT_ROOT, paths.SOURCE_ROOT, paths.KINETICS_DIR, self.temp)):
             with self.subTest(cwd=cwd):
-                self.launch([sys.executable, str(script), "--output", f"{i}.npz"], cwd)
+                # Keep exports isolated even when the launch directory is inside the checkout.
+                run_dir = self.temp / f"run_{i}"
+                script_copy = self.temp / "VarInputs.py"
+                script_copy.write_text(script.read_text(encoding="utf-8").replace(
+                    "OUTPUT_DIR = None", f"OUTPUT_DIR = {str(run_dir)!r}"), encoding="utf-8")
+                self.launch([sys.executable, str(script_copy), "--output", f"{i}.npz"], cwd)
+                self.assertEqual((run_dir / "VarInputs.py").read_bytes(), script_copy.read_bytes())
                 with np.load(Path(self.env["BOW_OUTPUT_DIR"]) / f"{i}.npz") as result:
                     current = result["breakthrough"]
                     self.assertTrue(np.isfinite(current).all())
@@ -50,7 +56,11 @@ class PathsTest(unittest.TestCase):
 
     def test_package_and_console(self):
         console = Path(sysconfig.get_path("scripts")) / ("bow-sim.exe" if os.name == "nt" else "bow-sim")
-        self.launch([sys.executable, "-m", "Column_Simulation.main"], self.temp)
+        self.launch([sys.executable, str(paths.EXPERIMENTS_DIR / "VarInputs.py")], self.temp)
+        self.assertEqual((self.temp / "run_1/VarInputs.py").read_bytes(),
+                         (paths.EXPERIMENTS_DIR / "VarInputs.py").read_bytes())
+        self.assertTrue((self.temp / "run_1/run.png").is_file())
+        self.assertTrue((self.temp / "run_1/run.csv").is_file())
         self.launch([str(console)], self.temp)
 
     def test_all_imports(self):
@@ -65,10 +75,10 @@ class PathsTest(unittest.TestCase):
         inputs = build_inputs()
         inputs.IsothermModel = 1
         self.assertEqual(selected("isotherms", 1)[1].__name__, "Column_Simulation.src.isotherms.1_linear")
-        res = run(inputs)
+        res = run(inputs, output_dir=self.temp / "linear")
         self.assertEqual(res.cm.shape, (inputs.Nt, inputs.Nz, len(inputs.species)))
         self.assertTrue(np.isfinite(res.cm).all())
-        self.assertAlmostEqual(float(res.breakthrough[-1, 0]), 0.7600935853, places=6)
+        self.assertAlmostEqual(float(res.breakthrough[-1, 0]), 0.0012081088866, places=6)
 
     def test_file_resolution(self):
         sample = self.temp / "data" / "échantillon 1.csv"

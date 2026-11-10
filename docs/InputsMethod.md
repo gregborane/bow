@@ -77,9 +77,8 @@ The repository retains the following IDs from the larger model catalogue. Select
 After installing the checkout with `python -m pip install -e .`, run:
 
 ```python
-from Column_Simulation.experiments.VarInputs import build_inputs
+from Column_Simulation.experiments.VarInputs import build_inputs, run_simulation
 from Column_Simulation.src.inputs.VarError import ErrorDetection
-from Column_Simulation.main import run
 
 p = build_inputs()
 p.InputType = 2
@@ -87,9 +86,9 @@ p.KineticModel = 4
 p.IsothermModel = 1
 ErrorDetection().ValidateAll(p)
 p.CalculateAllVariables()
-result = run(p, experiment_id="linear_pulse")
+result = run_simulation(p, experiment_id="linear_pulse")
 ```
 
-Recalculate after changing flow, grid, species or timing because `build_inputs()` has already derived the original experiment's values. This example writes to `experiments/run_linear_pulse/` by default. For a reproducible experiment source, make the edits in `VarInputs.py` before calling its builder. The exported source copy records that file, while changes made in a live REPL affect only the run.
+Recalculate after changing flow, grid, species or timing because `build_inputs()` has already derived the original experiment's values. This example writes to `./run_linear_pulse/` by default. For a reproducible experiment source, make the edits in `VarInputs.py` before calling its builder. The exported source copy records that file, while changes made in a live REPL affect only the run.
 
 See [the simulation algorithm](AlgorithmicLoop.md) for state dimensions, boundary conditions and output fields.

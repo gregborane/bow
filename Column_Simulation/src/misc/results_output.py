@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import colormaps
 
-from Column_Simulation import paths
+DEFAULT_EXPERIMENT_ID = 1
 
 
 def open_image(path):
@@ -136,7 +136,7 @@ def _publish(stage, directory, filenames):
 
 def save_simulation_outputs(
     results,
-    experiment_id=1,
+    experiment_id=DEFAULT_EXPERIMENT_ID,
     output_dir=None,
     signal_name=None,
     time_unit="s",
@@ -144,14 +144,9 @@ def save_simulation_outputs(
     *,
     component_names=None,
     config_file=None,
+    open_external_display=False,
 ):
-    """Return (csv_path, png_path).
-
-    Export simulation results and display the breakthrough figure.
-
-    Jupyter: inline display.
-    Terminal: open with the operating system's default image viewer.
-    """
+    """Publish the breakthrough CSV, PNG and optional source copy. Return (csv_path, png_path)."""
 
     if (
         isinstance(experiment_id, bool)
@@ -167,17 +162,15 @@ def save_simulation_outputs(
         )
 
     table, names = prepare_table(results, component_names)
-    base = (
-        paths.OUTPUT_DIR
-        if "BOW_OUTPUT_DIR" in os.environ
-        else paths.EXPERIMENTS_DIR
-    )
-    directory = (
-        paths.project_path(output_dir)
-        if output_dir is not None
-        else base / f"run_{experiment_id}"
-    )
-    directory.mkdir(parents=True, exist_ok=True)
+    if output_dir is None:
+        output_dir = f"run_{experiment_id}"
+    try:
+        if not os.fspath(output_dir).strip():
+            raise ValueError("empty directory path")
+        directory = Path(output_dir).resolve()
+        directory.mkdir(parents=True, exist_ok=True)
+    except (OSError, ValueError, TypeError, RuntimeError) as exc:
+        raise ValueError(f"Cannot use output_dir {output_dir!r}: {exc}") from exc
     csv_path = directory / "run.csv"
     png_path = directory / "run.png"
     with TemporaryDirectory(dir=directory) as staging:
@@ -190,27 +183,27 @@ def save_simulation_outputs(
             time_unit,
             signal_unit
         )
-        fig.savefig(
-            stage / "run.png",
-            dpi=300,
-            format="png"
-        )
-        files = ["run.csv", "run.png"]
-        if config_file is not None:
-            copyfile(
-                paths.input_path(config_file),
-                stage / "VarInputs.py"
+        try:
+            fig.savefig(
+                stage / "run.png",
+                dpi=300,
+                format="png"
             )
-            files.append("VarInputs.py")
-        _publish(stage, directory, files)
-    try:
-        # Jupyter Notebook
-        if "ipykernel" in sys.modules:
-            from IPython.display import display
-            display(fig)
-        # Normal Python / terminal / Iron.nvim
-        else:
-            open_image(png_path)
-    finally:
-        plt.close(fig)
+            files = ["run.csv", "run.png"]
+            if config_file is not None:
+                copyfile(
+                    Path(config_file),
+                    stage / "VarInputs.py"
+                )
+                files.append("VarInputs.py")
+            _publish(stage, directory, files)
+            # Jupyter Notebook
+            if "ipykernel" in sys.modules:
+                from IPython.display import display
+                display(fig)
+            # Normal Python / terminal / Iron.nvim
+            elif open_external_display:
+                open_image(png_path)
+        finally:
+            plt.close(fig)
     return csv_path, png_path

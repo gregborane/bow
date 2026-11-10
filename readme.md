@@ -12,48 +12,22 @@ Developed in python to quickly implement isotherms and kinetics models.
 Eventual port to golang will be envisaged for faster computation while keeping
 easiness of implementation.
 
-## Installation and use : 
+## Installation and use
 
-### Usage
+Install from the checkout root with `python -m pip install -e .`. Edit
+`Column_Simulation/experiments/VarInputs.py` to select the inputs and set
+`EXPERIMENT_ID`, `OUTPUT_DIR`, `EXPORT_CONFIG`, and `OPEN_EXTERNAL_DISPLAY`.
+From the checkout root, run:
 
-```
-cd $ROOT_DIRECTORY # main folder containing the .exec file
-cd $SRC_DIRECTORY # folder containing the back end of the software
-cd $EXPERIEMENTS_DIRECTORY # folder containing simulation runs
-```
-
-### Installation
-
-```
-cd $ROOT_DIRECTORY 
-python -m pip install -e .
+```sh
+python Column_Simulation/experiments/VarInputs.py
 ```
 
-### Run a Simulation
-
-Modify the VarInputs.py file and set up the parameters.
-
-```
-vim experiments/VarInputs.py
-```
-
-Finally run the main file.
-
-```
-cd $ROOT_DIRECTORY
-python main.py
-```
-
-### Outputs
-
-At the moment, the results are stored in 
-
-```
-$ROOT_DIR/experiemnts/run_1/\
-run.csv
-run.png
-VarInputs.py # input used
-```
+The default run writes `run.csv`, `run.png`, and a copy of `VarInputs.py` to
+`./run_1/`. Relative output directories start at the working directory.
+The installed `bow-sim` command also accepts `--experiment-id` and `--output`.
+For the optional NPZ export, relative `--output` filenames start in
+`BOW_OUTPUT_DIR` (default: the checkout's `results/` directory).
 
 ## Goals : 
 
@@ -129,6 +103,6 @@ Next in line is incorporation of :
 | Use a chosen file for inputs              |      N      |   N    |
 | Use fail safe for inputs                  |      Y      |   N    |
 | Use .json file for inputs                 |      N      |   N    |
-| Custom save location for ouputs           |      N      |   N    |
+| Custom save location for ouputs           |      Y      |   N    |
 | Use fail safe location for ouputs         |      Y      |   N    |
 | Custom format for output image            |      N      |   N    |
