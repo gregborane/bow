@@ -12,7 +12,7 @@ FloatArray = NDArray[np.float64]
 # %%
 
 @dataclass(frozen=True, eq=False)
-class LinearIsotherm:
+class Isotherm:
     """LDF linear isotherm: q_i = qm_i * K_i * c_i.
 
     `K` is one affinity per component; `qm` may be a scalar common to all

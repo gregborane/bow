@@ -9,7 +9,7 @@ FloatArray = NDArray[np.float64]
 
 # %% 
 @dataclass(frozen=True, eq=False)
-class LangmuirIsotherm:
+class Isotherm:
     """Competitive multicomponent Langmuir isotherm.
 
     q_i = qm_i*K_i*c_i / (1 + sum_j K_j*c_j)

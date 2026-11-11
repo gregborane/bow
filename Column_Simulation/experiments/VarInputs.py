@@ -11,6 +11,9 @@ settings are defined once. Add any number of species to the same StoreInput.
 # mclldf_keq=0, mclldf_kkin=0.33 1/s, mclldf_qmax=1.
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 from Column_Simulation import main
 from Column_Simulation.src.inputs.CalculateAllVariables import (
     ColumnParameters,
@@ -19,6 +22,7 @@ from Column_Simulation.src.inputs.CalculateAllVariables import (
     StoreInput,
 )
 from Column_Simulation.src.inputs.VarError import ErrorDetection
+from Column_Simulation.src.misc.results_output import prepare_table
 
 
 def build_inputs() -> StoreInput:
@@ -47,7 +51,7 @@ def build_inputs() -> StoreInput:
         Csf=0,              # Keep salt concentration constant at zero (isocratic case)
         pHo=7,              # Fixed pH placeholder; CADET reference has no pH dependence
         pHf=7,              # Fixed pH placeholder; no pH gradient
-        nu=0.01,            # Not specified by CADET; retained pending film-transfer calibration
+        nu=0.001,            # Not specified by CADET; retained pending film-transfer calibration
     ))
 
     # ============================================================
@@ -63,7 +67,8 @@ def build_inputs() -> StoreInput:
         kb = 0.33,           # No separate counterpart in CADET's quasi-stationary LDF setup
         Dl = 2e-7,           # CADET col_dispersion (m^2/s)
         De = 1e-7,           # CADET par_diffusion (m^2/s)
-        Cfeed = 1.0          # CADET inlet concentration during the pulse
+        Cfeed = 1.0,          # CADET inlet concentration during the pulse
+        kf = 1e-4
     ))
 
     # Add more species using another inputs.AddSpecies("name", SpeciesParameters(...)).
@@ -92,7 +97,7 @@ def build_inputs() -> StoreInput:
     # Model selections
     inputs.InputType = 2               # Pulse: inlet concentration 1 until 30 s, then 0
     inputs.ElutionType = 1             # Isocratic: no salt or pH gradient
-    inputs.KineticModel = 3            # Pore-diffusion model, matching CADET GENERAL_RATE_MODEL
+    inputs.KineticModel = 4            # Pore-diffusion model, matching CADET GENERAL_RATE_MODEL
     inputs.SolverModel = 1             # WENO, matching CADET's WENO reconstruction
     inputs.IsothermModel = 2           # Langmuir
 
@@ -177,9 +182,26 @@ def run_simulation(custom_inputs=None, *, experiment_id=None):
         selected_inputs,
         experiment_id=EXPERIMENT_ID if experiment_id is None else experiment_id,
         output_dir=OUTPUT_DIR,
-        open_external_display=OPEN_EXTERNAL_DISPLAY,
         config_file=_config_source() if EXPORT_CONFIG else None,
     )
 
-results = run_simulation()
+results_raw = run_simulation()
+results, names = prepare_table(results_raw, inputs.species)
+
+time = results[:, 0] 
+c = results[:, 1]
+
+max_index = np.where(c == np.max(c))[0][0]
+
+maxy = c[max_index]
+maxx = time[max_index].round(1)
+plt.figure()
+plt.plot(time, c, label=f'retention time = {maxx} s')
+plt.plot([maxx, maxx], [0, maxy])
+plt.title('Column (Outlet)')
+plt.xlabel('$time~/~s$')
+plt.ylabel('$concentration~/~mM$')
+plt.legend()
+plt.savefig('./run_1/run.png')
+plt.show()  
 

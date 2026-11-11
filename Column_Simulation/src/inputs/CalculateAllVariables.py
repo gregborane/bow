@@ -28,8 +28,8 @@ class ColumnParameters:
 class SolutionParameters:
     """Mobile-phase composition and physical properties."""
 
-    Cso:  float | None = None    # Initial salt concentration (M)
-    Csf:  float | None = None    # Final salt concentration (M)
+    Cso:  float | None = None    # Initial salt concentration (mol/m³)
+    Csf:  float | None = None    # Final salt concentration (mol/m³)
     pHo:  float | None = None    # Initial pH
     pHf:  float | None = None    # Final pH
     nu:  float | None = None     # Kinematic viscosity (m²/s)
@@ -41,13 +41,14 @@ class SpeciesParameters:
 
     Do:  float | None = None     # Molecular diffusivity (m²/s)
     kc:  float | None = None     # LDF mass-transfer rate constant (1/s)
-    K: float | None = None       # Henry's constant law
+    K: float | None = None       # Thermodynamic equilibrium constant ka / kb
     qm : float | None = None     # Maximum quantity adsorbed on materials
 
     Cfeed: float | None = None   # Feed concentration, same units as mobile-phase c
     kb: float | None = None      # Adsorption rate coefficient (driving-force dependent)
     Dl: float | None = None      # Axial dispersion coefficient (m²/s)
     De: float | None = None      # Effective pore diffusivity (m²/s)
+    kf: float | None = None      # film diffusion (m/s)
 
 
 @dataclass
@@ -99,52 +100,64 @@ class StoreInput:
         # Shared inputs and derived values start unset. The lists are also used
         # by validation, so each shared attribute has one central declaration.
         # Class-level annotations make shared attributes visible to static analysis.
-        self.dp: float 
-        self.dc: float
-        self.L: float
-        self.e: float
-        self.ep_s: float
-        self.ep_p: float
-        self.Cso: float
-        self.Csf: float
-        self.pHo: float
-        self.pHf: float
-        self.nu: float
-        self.Q: float
-        self.CVfinal: float
-        self.Nt: int
-        self.Nz: int
-        self.Nr: int
-        self.InputType: int
-        self.ElutionType: int
-        self.KineticModel: int
-        self.SolverModel: int
-        self.IsothermModel: int
-        self.Vinj: float
-        self.CVwash: float
-        self.CVG: float
-        self.K: float
-        self.qm: float
+        # Column and particle parameters
+        self.dp: float       # m
+        self.dc: float       # m
+        self.L: float        # m
+        self.e: float        # dimensionless
+        self.ep_s: float     # dimensionless
+        self.ep_p: float     # dimensionless
 
-        self.Rp: float
-        self.Ac: float
-        self.Vc: float
-        self.u: float
-        self.v: float
-        self.tfinal: float
-        self.tspan: np.ndarray
-        self.tinj: float
-        self.twash: float
-        self.theta: float
-        self.km: float
-        self.kinf: float
-        self.dz: float
-        self.dr: float
-        self.tG: float
-        self.Bs: float
-        self.BpH: float
-        self.gamma: float
-        self.Re: float
+        # Solution parameters
+        self.Cso: float      # mol/m³
+        self.Csf: float      # mol/m³
+        self.pHo: float      # dimensionless (pH)
+        self.pHf: float      # dimensionless (pH)
+        self.nu: float       # m²/s
+
+        # Operating parameters
+        self.Q: float           # m³/s
+        self.CVfinal: float     # dimensionless
+        self.Nt: int            # number of time points
+        self.Nz: int            # number of axial points
+        self.Nr: int            # number of radial points
+        self.InputType: int     # model selection code
+        self.ElutionType: int   # model selection code
+        self.KineticModel: int  # model selection code
+        self.SolverModel: int   # model selection code
+        self.IsothermModel: int # model selection code
+        self.Vinj: float        # m³
+        self.CVwash: float      # dimensionless
+        self.CVG: float         # dimensionless
+
+        # Geometry and calculated variables
+        self.Rp: float          # m
+        self.Ac: float          # m²
+        self.Vc: float          # m³
+        self.u: float           # m/s
+        self.v: float           # m/s
+        self.tfinal: float      # s
+        self.tspan: np.ndarray  # s
+        self.tinj: float        # s
+        self.twash: float       # s
+
+        # Phase parameters
+        self.theta: float       # dimensionless
+        self.km: float          # dimensionless
+        self.kinf: float        # dimensionless
+
+        # Numerical grid
+        self.dz: float          # m
+        self.dr: float          # m
+
+        # Elution parameters
+        self.tG: float          # s
+        self.Bs: float          # mol/(m³.s)
+        self.BpH: float         # pH/s (formally s⁻¹)
+        self.gamma: float       # mol/m³
+
+        # Dimensionless transport parameter
+        self.Re: float          # dimensionless
 
         for name in self.INPUT_NAMES + self.DERIVED_NAMES:
             setattr(self, name, None)
@@ -295,7 +308,7 @@ class StoreInput:
     def _calculate_elution(self):
         if self.ElutionType != 1:                    # Gradient elution
             self.tG = self.CVG * self.Vc / self.Q
-            self.Bs = (self.Csf - self.Cso) / self.tG     # M/s
+            self.Bs = (self.Csf - self.Cso) / self.tG     # mol/(m³.s)
             self.BpH = (self.pHf - self.pHo) / self.tG    # pH units/s
             self.gamma = self.Bs * self.L / self.v
 
@@ -321,7 +334,8 @@ class StoreInput:
                     * self.Re ** 0.33
                     * results.Sc ** 0.33
                 )
-                results.kf = results.Sh * parameters.Do / dp
+                if not results.kf:
+                    results.kf = results.Sh * parameters.Do / dp
 
             self.species_results[name] = results
 
