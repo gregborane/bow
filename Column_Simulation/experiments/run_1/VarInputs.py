@@ -19,13 +19,14 @@ def build_inputs() -> StoreInput:
     """Build one shared simulation containing all configured species."""
     inputs = StoreInput()
 
-    # =========================================================
+    # ==========================================================
     # 1. COLUMN PARAMETERS: shared geometry and stationary phase
-    # =========================================================
+    # ==========================================================
+
     inputs.SetColumn(ColumnParameters(
-        dp=1,               # Particle diameter (µm)
-        dc=1,               # Column diameter (cm)
-        L=60,                # Column length (cm)
+        dp=4.5e-5,          # Particle diameter (m)
+        dc=0.011,           # Column diameter (m)
+        L=0.6,              # Column length (m)
         e=0.4,              # Column porosity (-)
         ep_p=0.4,           # Particle phase parameter (-)
         ep_s=0.7,           # Salt phase parameter (-)
@@ -34,42 +35,45 @@ def build_inputs() -> StoreInput:
     # =========================================================
     # 2. SOLUTION PARAMETERS: shared mobile phase
     # =========================================================
+    
     inputs.SetSolution(SolutionParameters(
-        Cso=0,              # Initial salt concentration (mM)
-        Csf=100,            # Final salt concentration (mM)
-        pHo=None,              # Initial pH
+        Cso=0,              # Initial salt concentration (M)
+        Csf=100,            # Final salt concentration (M)
+        pHo=None,           # Initial pH
         pHf=7,              # Final pH
-        nu=0.01,            # Kinematic viscosity (cm²/s)
+        nu=0.01,            # Kinematic viscosity (m²/s)
     ))
 
-    # =========================================================
+    # ============================================================
     # 3. SPECIES: add N proteins/solutes to this ONE simulation
     #    Each species has its own transport/adsorption parameters.
-    # =========================================================
+    # ============================================================
+    
     inputs.AddSpecies("Protein_A", SpeciesParameters(
-        Do=1e-6,            # Molecular diffusivity (cm²/s)
-        kc=0.01,            # LDF mass-transfer coefficient (1/s)
-        K = 0.0001,              # Henry Constant
-        qm = 1,          # Maximum quantity adsorbed 
+        Do = 1e-7,            # Molecular diffusivity (m²/s)
+        kc = 0.33,            # LDF mass-transfer coefficient (1/s)
+        K = 0.0001,         # Henry Constant
+        qm = 1,             # Maximum quantity adsorbed 
         kb = 0.33,          # Ads rate constant
-        Dl = 1e-4,          # Axial dispersion coefficient
+        Dl = 2e-7,          # Axial dispersion coefficient
         De = 1e-7,          # Effective Pore diffusivity
         Cfeed = 1           # Molecular concentration
     ))
 
     # Add more species using another inputs.AddSpecies("name", SpeciesParameters(...)).
 
-    # =========================================================
+    # =============================================================
     # 4. SIMULATION: shared operating conditions and numerical grid
-    # =========================================================
-    inputs.Q = 1            # Volumetric flow rate (cm³/min)
+    # =============================================================
+
+    inputs.Q = 1            # Volumetric flow rate (m³/s)
     inputs.CVfinal = 10     # Total simulation duration (column volumes)
     inputs.Nt = 100         # Number of time points
     inputs.Nz = 50          # Axial grid points
     inputs.Nr = 20          # Radial particle grid points
 
     # Pulse mode only (InputType = 2)
-    inputs.Vinj = 1         # Injection volume (cm³)
+    inputs.Vinj = 1         # Injection volume (m³)
     inputs.CVwash = 1       # Wash duration (column volumes)
 
     # Gradient mode only (ElutionType != 1)
@@ -85,6 +89,7 @@ def build_inputs() -> StoreInput:
     # =========================================================
     # 5. VALIDATION AND CALCULATION
     # =========================================================
+
     ErrorDetection().ValidateAll(inputs)
     inputs.CalculateAllVariables()
     return inputs
@@ -101,18 +106,18 @@ EXPORT_CONFIG = True
 def display_results(inputs: StoreInput):
     """Display shared results once, followed by each species' results."""
     print("\n========== SHARED SIMULATION VARIABLES ==========\n")
-    print(f"Particle radius Rp       = {inputs.Rp} µm")
-    print(f"Column area Ac           = {inputs.Ac} cm²")
-    print(f"Column volume Vc         = {inputs.Vc} cm³")
-    print(f"Superficial velocity u   = {inputs.u} cm/s")
-    print(f"Interstitial velocity v  = {inputs.v} cm/s")
+    print(f"Particle radius Rp       = {inputs.Rp} m")
+    print(f"Column area Ac           = {inputs.Ac} m²")
+    print(f"Column volume Vc         = {inputs.Vc} m³")
+    print(f"Superficial velocity u   = {inputs.u} m/s")
+    print(f"Interstitial velocity v  = {inputs.v} m/s")
     print(f"Final simulation time    = {inputs.tfinal} s")
     print(f"Time points tspan        = {inputs.tspan}")
     print(f"Phase ratio theta        = {inputs.theta}")
     print(f"Salt retention km        = {inputs.km}")
     print(f"Non-binding kinf         = {inputs.kinf}")
-    print(f"Axial step dz            = {inputs.dz} cm")
-    print(f"Radial step dr           = {inputs.dr} cm")
+    print(f"Axial step dz            = {inputs.dz} m")
+    print(f"Radial step dr           = {inputs.dr} m")
     print(f"Injection time tinj      = {inputs.tinj} s")
 
     if inputs.InputType == 2:
@@ -120,7 +125,7 @@ def display_results(inputs: StoreInput):
 
     if inputs.ElutionType != 1:
         print(f"Gradient time tG         = {inputs.tG} s")
-        print(f"Salt gradient Bs         = {inputs.Bs} mM/s")
+        print(f"Salt gradient Bs         = {inputs.Bs} M/s")
         print(f"pH gradient BpH          = {inputs.BpH} pH units/s")
         print(f"Normalized slope gamma   = {inputs.gamma}")
 
@@ -141,7 +146,7 @@ def display_results(inputs: StoreInput):
         elif inputs.SolverModel in (3, 4, 5):
             print(f"  Schmidt number Sc        = {results.Sc}")
             print(f"  Sherwood number Sh       = {results.Sh}")
-            print(f"  Film transfer coeff kf   = {results.kf} cm/s")
+            print(f"  Film transfer coeff kf   = {results.kf} m/s")
         print()
 
     print("==========================================\n")

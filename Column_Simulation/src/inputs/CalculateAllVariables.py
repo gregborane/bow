@@ -16,9 +16,9 @@ import numpy as np
 class ColumnParameters:
     """Column geometry, particle geometry, and stationary-phase parameters."""
 
-    dp:  float | None = None              # Particle diameter (µm)
-    dc:  float | None = None              # Column diameter (cm)
-    L:  float | None = None               # Column length (cm)
+    dp:  float | None = None              # Particle diameter (m)
+    dc:  float | None = None              # Column diameter (m)
+    L:  float | None = None               # Column length (m)
     e:  float | None = None               # Interstitial/column porosity (-)
     ep_s:  float | None = None            # Salt-related phase parameter (-)
     ep_p:  float | None = None            # Particle-related phase parameter (-)
@@ -28,26 +28,26 @@ class ColumnParameters:
 class SolutionParameters:
     """Mobile-phase composition and physical properties."""
 
-    Cso:  float | None = None    # Initial salt concentration (mM)
-    Csf:  float | None = None    # Final salt concentration (mM)
+    Cso:  float | None = None    # Initial salt concentration (M)
+    Csf:  float | None = None    # Final salt concentration (M)
     pHo:  float | None = None    # Initial pH
     pHf:  float | None = None    # Final pH
-    nu:  float | None = None     # Kinematic viscosity (cm²/s)
+    nu:  float | None = None     # Kinematic viscosity (m²/s)
 
 
 @dataclass(frozen=True)
 class SpeciesParameters:
     """Input properties belonging to one protein or other solute."""
 
-    Do:  float | None = None     # Molecular diffusivity (cm²/s)
+    Do:  float | None = None     # Molecular diffusivity (m²/s)
     kc:  float | None = None     # LDF mass-transfer rate constant (1/s)
     K: float | None = None       # Henry's constant law
     qm : float | None = None     # Maximum quantity adsorbed on materials
 
     Cfeed: float | None = None   # Feed concentration, same units as mobile-phase c
     kb: float | None = None      # Adsorption rate coefficient (driving-force dependent)
-    Dl: float | None = None      # Axial dispersion coefficient (cm²/s)
-    De: float | None = None      # Effective pore diffusivity (cm²/s)
+    Dl: float | None = None      # Axial dispersion coefficient (m²/s)
+    De: float | None = None      # Effective pore diffusivity (m²/s)
 
 
 @dataclass
@@ -57,7 +57,7 @@ class SpeciesResults:
     n:  float | None = None     # Dimensionless LDF parameter
     Sc:  float | None = None    # Schmidt number
     Sh:  float | None = None    # Sherwood number
-    kf:  float | None = None    # External film mass-transfer coefficient (cm/s)
+    kf:  float | None = None    # External film mass-transfer coefficient (m/s)
 
 
 class StoreInput:
@@ -265,15 +265,15 @@ class StoreInput:
         self.species_results.clear()
 
     def _calculate_geometry(self):
-        self.Rp = self.dp / 2                         # µm
-        self.Ac = np.pi * (self.dc / 2) ** 2         # cm²
-        self.Vc = self.L * self.Ac                   # cm³
+        self.Rp = self.dp / 2                        # m
+        self.Ac = np.pi * (self.dc / 2) ** 2         # m²
+        self.Vc = self.L * self.Ac                   # m³
 
     def _calculate_flow_and_time(self):
-        self.u = self.Q / (self.Ac * 60)             # cm/s
-        self.tfinal = self.CVfinal * self.Vc * 60 / self.Q
+        self.u = self.Q / self.Ac             # m/s
+        self.tfinal = self.CVfinal * self.Vc  / self.Q
         self.tspan = np.linspace(0, self.tfinal, self.Nt)
-        self.v = self.u / self.e                    # cm/s
+        self.v = self.u / self.e                     # m/s
 
     def _calculate_phase_parameters(self):
         self.theta = (1 - self.e) / self.e
@@ -281,31 +281,31 @@ class StoreInput:
         self.kinf = self.theta * self.ep_p
 
     def _calculate_spatial_grid(self):
-        self.dz = self.L / (self.Nz - 1)             # cm
-        # Rp is stored in µm; dr is required in cm.
-        self.dr = (self.Rp * 1e-4) / (self.Nr - 1)  # cm
+        self.dz = self.L / (self.Nz - 1)             # m
+        # Rp is stored in m; dr is required in m.
+        self.dr = (self.Rp) / (self.Nr - 1)          # m
 
     def _calculate_injection(self):
         if self.InputType == 1:                      # Step input
             self.tinj = self.tfinal
         else:                                        # Pulse input
-            self.tinj = 60 * self.Vinj / self.Q
-            self.twash = self.tinj + self.CVwash * self.Vc * 60 / self.Q
+            self.tinj = self.Vinj / self.Q
+            self.twash = self.tinj + self.CVwash * self.Vc  / self.Q
 
     def _calculate_elution(self):
         if self.ElutionType != 1:                    # Gradient elution
-            self.tG = self.CVG * self.Vc * 60 / self.Q
-            self.Bs = (self.Csf - self.Cso) / self.tG     # mM/s
+            self.tG = self.CVG * self.Vc / self.Q
+            self.Bs = (self.Csf - self.Cso) / self.tG     # M/s
             self.BpH = (self.pHf - self.pHo) / self.tG    # pH units/s
             self.gamma = self.Bs * self.L / self.v
 
     def _calculate_mass_transfer(self):
         """Calculate transport results once for each registered species."""
-        dp_cm = self.dp * 1e-4  # Particle diameter converted from µm to cm.
+        dp = self.dp  # Particle diameter converted from m to m.
 
         # Reynolds number depends on shared column, flow, and solution data.
         if self.KineticModel in (3, 4, 5):
-            self.Re = self.u * dp_cm / self.nu
+            self.Re = self.u * dp / self.nu
 
         for name, parameters in self.species.items():
             # Create the result object here, where its values are calculated.
@@ -321,7 +321,7 @@ class StoreInput:
                     * self.Re ** 0.33
                     * results.Sc ** 0.33
                 )
-                results.kf = results.Sh * parameters.Do / dp_cm
+                results.kf = results.Sh * parameters.Do / dp
 
             self.species_results[name] = results
 
