@@ -51,7 +51,7 @@ class PoreModel:
                                                     allow_zero=name != 'De'))
         self.kf = _species_parameter([inputs.GetSpeciesResults(s).kf for s in inputs.species],
                                      self.nc, "kf", allow_zero=True)
-        self.radius = inputs.Rp * 1e-4  # StoreInput.Rp in µm, diffusivities in cm²/s
+        self.radius = inputs.Rp  # StoreInput.Rp in µm, diffusivities in cm²/s
         if not (0 < inputs.ep_p <= 1 and inputs.v > 0 and self.radius > 0):
             raise ValueError("Expected positive flow, radius and particle porosity <= 1")
         if space is None:
