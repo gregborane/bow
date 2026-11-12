@@ -14,15 +14,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy as scp
 
-from Column_Simulation import main
-from Column_Simulation.src.inputs.CalculateAllVariables import (
+from bow.Col_Simulation import main
+from bow.Col_Simulation.inputs.CalculateAllVariables import (
     ColumnParameters,
     SolutionParameters,
     SpeciesParameters,
     StoreInput,
 )
-from Column_Simulation.src.inputs.VarError import ErrorDetection
-from Column_Simulation.src.misc.results_output import prepare_table
+from bow.Col_Simulation.inputs.VarError import ErrorDetection
+from bow.Col_Simulation.misc.results_output import prepare_table
 
 
 def build_inputs() -> StoreInput:

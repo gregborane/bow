@@ -3,7 +3,7 @@ from importlib import import_module
 
 import numpy as np
 
-PoreModel = import_module("Column_Simulation.src.kinetics.3_PoreDiffusion_ceq_Framework").PoreModel
+PoreModel = import_module("bow.Col_Simulation.kinetics.3_PoreDiffusion_ceq_Framework").PoreModel
 
 
 class Model(PoreModel):

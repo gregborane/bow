@@ -5,10 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bow-chromatography"
 version = "0.1.0"
-description = "BOW chromatography column simulation"
+description = "BOW chromatography column simulation and optimization"
 requires-python = ">=3.11"
 dependencies = ["numpy", "scipy", "matplotlib"]
 
 [tool.setuptools.packages.find]
-include = ["bow.Column_Simulation", "bow.Column_Simulation.*"]
+where = ["src"]
+include = ["bow", "bow.*"]
 namespaces = false

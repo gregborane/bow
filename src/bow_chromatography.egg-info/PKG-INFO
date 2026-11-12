@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: bow-chromatography
+Version: 0.1.0
+Summary: BOW chromatography column simulation and optimization
+Requires-Python: >=3.11
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: matplotlib

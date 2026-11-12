@@ -2,7 +2,7 @@
 
 from numbers import Real
 
-from Column_Simulation.src.inputs.CalculateAllVariables import (
+from bow.Col_Simulation.inputs.CalculateAllVariables import (
     SpeciesParameters,
     StoreInput,
 )

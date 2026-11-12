@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from Column_Simulation.src.misc.isotherm import _affinities, _species_parameter, _state
+from bow.Col_Simulation.misc.isotherm import _affinities, _species_parameter, _state
 
 FloatArray = NDArray[np.float64]
 

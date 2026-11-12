@@ -11,7 +11,7 @@ SOLVERS_DIR = PACKAGE_ROOT / "solvers"
 
 def _project_root():
     override = os.environ.get("BOW_PROJECT_ROOT")
-    root = Path(override).expanduser() if override is not None else PACKAGE_ROOT.parent
+    root = Path(override).expanduser() if override is not None else PACKAGE_ROOT.parents[2]
     if not root.is_absolute():
         raise ValueError("BOW_PROJECT_ROOT must be an absolute directory")
     root = root.resolve()
@@ -20,6 +20,8 @@ def _project_root():
         with marker.open("rb") as stream:
             if tomllib.load(stream).get("project", {}).get("name") == "bow-chromatography":
                 return root
+    if override is None:
+        return Path.cwd()
     raise ValueError(f"Expected a BOW pyproject.toml at {marker}. Set BOW_PROJECT_ROOT to a BOW checkout.")
 
 

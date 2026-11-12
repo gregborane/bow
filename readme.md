@@ -7,35 +7,37 @@ But way more inferior in terms of speed, optimisation and modularity.
 
 The main objective is to have a quick and easily modifiable project. 
 
-Developed in python to quickly implement isotherms and kinetics models.
+Developed in python to quickly implement isotherms, kinetics and solvers models.
 
 Eventual port to golang will be envisaged for faster computation while keeping
 easiness of implementation.
 
 ## Installation and use
 
-Install from the checkout root with `python -m pip install -e .`. Edit
-`Column_Simulation/experiments/VarInputs.py` to select the inputs and set
-`EXPERIMENT_ID`, `OUTPUT_DIR`, `EXPORT_CONFIG`, and `OPEN_EXTERNAL_DISPLAY`.
-From the checkout root, run:
+Install from the checkout root with `python -m pip install .`. For development,
+use `python -m pip install -e .`.
 
-```sh
-python Column_Simulation/experiments/VarInputs.py
+```python
+from bow import Col_Simulation, Optimization
+from bow.Col_Simulation.inputs.VarError import ErrorDetection
+from bow.Optimization import main as optimization_main
 ```
 
-The default run writes `run.csv`, `run.png`, and a copy of `VarInputs.py` to
-`./run_1/`. Relative output directories start at the working directory.
-The installed `bow-sim` command also accepts `--experiment-id` and `--output`.
-For the optional NPZ export, relative `--output` filenames start in
-`BOW_OUTPUT_DIR` (default: the checkout's `results/` directory).
+Edit `experiments/VarInputs.py` to configure a simulation, then run
+`python experiments/VarInputs.py` from the checkout root.
+
+The path helpers resolve relative data and results paths from the checkout root
+during development. After a wheel install they use the working directory at
+import time. Set `BOW_PROJECT_ROOT` to an absolute BOW checkout path to override
+this default.
 
 ## Goals : 
 
 Next in line is incorporation of : 
 
-- Linear & Langmuir Isotherm
-- Pore diffusion c\q equilibrium
-- Finite difference method
+- Langmuir non ka/ kb, SMA model
+- LDF driving force
+- General patch for the package
 
 ### 1. Inputs / Ouputs Builders
 

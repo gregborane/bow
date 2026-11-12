@@ -2,7 +2,7 @@ from importlib import import_module
 from pathlib import Path
 from pkgutil import iter_modules
 
-from Column_Simulation.src.misc.results_output import (
+from bow.Col_Simulation.misc.results_output import (
     DEFAULT_EXPERIMENT_ID,
     save_simulation_outputs,
 )
@@ -17,7 +17,7 @@ def display_model(isotherm, kinetic, solver):
 
 
 def selected(group, identifier):
-    package = import_module(f"Column_Simulation.src.{group}")
+    package = import_module(f"bow.Col_Simulation.{group}")
     prefix = f"{identifier}_"
     names = [item.name for item in iter_modules(package.__path__) if item.name.startswith(prefix)]
     module = import_module(f".{names[0]}", package.__name__)

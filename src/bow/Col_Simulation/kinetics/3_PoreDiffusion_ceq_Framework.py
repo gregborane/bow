@@ -12,7 +12,7 @@ from scipy.integrate import solve_ivp
 from scipy.interpolate import RegularGridInterpolator
 from scipy.sparse import lil_matrix
 
-from Column_Simulation.src.misc.isotherm import _species_parameter
+from bow.Col_Simulation.misc.isotherm import _species_parameter
 
 
 class PoreModel:
