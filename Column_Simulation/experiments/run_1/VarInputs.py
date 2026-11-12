@@ -13,6 +13,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy as scp
 
 from Column_Simulation import main
 from Column_Simulation.src.inputs.CalculateAllVariables import (
@@ -61,10 +62,10 @@ def build_inputs() -> StoreInput:
     
     inputs.AddSpecies("Protein_A", SpeciesParameters(
         Do = 1e-7,           # VarInputs molecular diffusivity; CADET has no separate Do field
-        kc = 0.001,          # Same numeric value as CADET mclldf_kkin (inactive: is_kinetic=0)
-        K = 0.000001,        # CADET mclldf_keq = 0; preserves the reference's zero-affinity case
+        kc = 0.333,          # Same numeric value as CADET mclldf_kkin (inactive: is_kinetic=0)
+        K = 2,        # CADET mclldf_keq = 0; preserves the reference's zero-affinity case
         qm = 1.0,            # CADET mclldf_qmax
-        kb = 0.33,           # No separate counterpart in CADET's quasi-stationary LDF setup
+        kb = 10000,           # No separate counterpart in CADET's quasi-stationary LDF setup
         Dl = 2e-7,           # CADET col_dispersion (m^2/s)
         De = 1e-7,           # CADET par_diffusion (m^2/s)
         Cfeed = 1.0,          # CADET inlet concentration during the pulse
@@ -182,8 +183,6 @@ def run_simulation(custom_inputs=None, *, experiment_id=None):
         selected_inputs,
         experiment_id=EXPERIMENT_ID if experiment_id is None else experiment_id,
         output_dir=OUTPUT_DIR,
-        open_external_display=OPEN_EXTERNAL_DISPLAY,
-        plot_resultat=False,
         config_file=_config_source() if EXPORT_CONFIG else None,
     )
 
@@ -192,18 +191,23 @@ results, names = prepare_table(results_raw, inputs.species)
 
 time = results[:, 0] 
 c = results[:, 1]
-
+cs = scp.interpolate.CubicSpline(time, c)
+intergration = scp.integrate.quad(cs, 0, time[-1])[0]
 max_index = np.where(c == np.max(c))[0][0]
-
 maxy = c[max_index]
-maxx = time[max_index].round(1)
+maxx = time[max_index]
+
 plt.figure()
-plt.plot(time, c, label=f'retention time = {maxx} s')
-plt.plot([maxx, maxx], [0, maxy])
+plt.plot(time, c)
+plt.plot([maxx, maxx], [0, maxy], label=f'retention time = {maxx.round(1)} s')
+plt.plot([0, maxx], [maxy, maxy], label=f'concentration = {maxy.round(2)} mol/m³')
+plt.fill(time, c, hatch='/', label=f"integration value = {np.float64(intergration).round(2)}")
 plt.title('Column (Outlet)')
 plt.xlabel('$time~/~s$')
 plt.ylabel('$concentration~/~mM$')
 plt.legend()
-plt.savefig('./run_1/run.png')
-plt.show()  
+plt.savefig('./cadet.png')
+plt.show() 
+
+# %%
 
