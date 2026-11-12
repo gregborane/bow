@@ -35,7 +35,7 @@ this default.
 
 Next in line is incorporation of : 
 
-- Langmuir non ka/ kb, SMA model
+- Langmuir ka/ kb, SMA model
 - LDF driving force
 - General patch for the package
 
