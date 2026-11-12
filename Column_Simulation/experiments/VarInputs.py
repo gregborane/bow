@@ -62,10 +62,10 @@ def build_inputs() -> StoreInput:
     
     inputs.AddSpecies("Protein_A", SpeciesParameters(
         Do = 1e-7,           # VarInputs molecular diffusivity; CADET has no separate Do field
-        kc = 0.333,          # Same numeric value as CADET mclldf_kkin (inactive: is_kinetic=0)
-        K = 2,        # CADET mclldf_keq = 0; preserves the reference's zero-affinity case
+        kc = 0,          # Same numeric value as CADET mclldf_kkin (inactive: is_kinetic=0)
+        K = 1e-9,        # CADET mclldf_keq = 0; preserves the reference's zero-affinity case
         qm = 1.0,            # CADET mclldf_qmax
-        kb = 10000,           # No separate counterpart in CADET's quasi-stationary LDF setup
+        kb = 0.33,           # No separate counterpart in CADET's quasi-stationary LDF setup
         Dl = 2e-7,           # CADET col_dispersion (m^2/s)
         De = 1e-7,           # CADET par_diffusion (m^2/s)
         Cfeed = 1.0,          # CADET inlet concentration during the pulse
@@ -99,7 +99,7 @@ def build_inputs() -> StoreInput:
     inputs.InputType = 2               # Pulse: inlet concentration 1 until 30 s, then 0
     inputs.ElutionType = 1             # Isocratic: no salt or pH gradient
     inputs.KineticModel = 4            # Pore-diffusion model, matching CADET GENERAL_RATE_MODEL
-    inputs.SolverModel = 1             # WENO, matching CADET's WENO reconstruction
+    inputs.SolverModel = 1             # FDM
     inputs.IsothermModel = 2           # Langmuir
 
     # =========================================================

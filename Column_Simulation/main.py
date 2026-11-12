@@ -69,7 +69,7 @@ def run(inputs, experiment_id=DEFAULT_EXPERIMENT_ID, output_dir=None,
     iso = isotherm_class(
         [s.K for s in species], [s.qm for s in species])
     space = backend.SpatialOperators(np.linspace(0, inputs.L, inputs.Nz),
-                                     np.linspace(inputs.Rp * 1e-4, 0, inputs.Nr))
+                                     np.linspace(inputs.Rp, 0, inputs.Nr))
     
     results = kinetics_model.Model(inputs, iso, space).simulate()
     

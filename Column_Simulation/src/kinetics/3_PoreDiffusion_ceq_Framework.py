@@ -94,7 +94,10 @@ class PoreModel:
         dq = self.adsorption(t, c, q)
         flux = self.kf * (cm - c[:, 0])
         diffusion = self.space.particle_interior(c, self.De, flux)
-        dc = (diffusion - dq[:, 1:]) / self.p.ep_p
+        dc = (
+            diffusion
+            - (1.0 - self.p.ep_p) * dq[:, 1:]
+            ) / self.p.ep_p        
         dcm = (-self.p.v * self.space.first(cm, self.p.v) + self.Dl * self.space.second(cm)
                - self.p.theta * self.coupling(c, cm))
         return self.pack(dc, dq, dcm[1:-1])
