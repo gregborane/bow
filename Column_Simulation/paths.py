@@ -3,13 +3,10 @@ import os
 import tomllib
 from pathlib import Path
 
-
 PACKAGE_ROOT = Path(__file__).resolve().parent
-SOURCE_ROOT = PACKAGE_ROOT / "src"
-EXPERIMENTS_DIR = PACKAGE_ROOT / "experiments"
-ISOTHERMS_DIR = SOURCE_ROOT / "isotherms"
-KINETICS_DIR = SOURCE_ROOT / "kinetics"
-SOLVERS_DIR = SOURCE_ROOT / "solvers"
+ISOTHERMS_DIR = PACKAGE_ROOT / "isotherms"
+KINETICS_DIR = PACKAGE_ROOT / "kinetics"
+SOLVERS_DIR = PACKAGE_ROOT / "solvers"
 
 
 def _project_root():

@@ -20,8 +20,6 @@ def selected(group, identifier):
     package = import_module(f"Column_Simulation.src.{group}")
     prefix = f"{identifier}_"
     names = [item.name for item in iter_modules(package.__path__) if item.name.startswith(prefix)]
-    if len(names) != 1:
-        raise ValueError(f"Expected one {group} module for ID {identifier}")
     module = import_module(f".{names[0]}", package.__name__)
     return Path(module.__file__), module
 

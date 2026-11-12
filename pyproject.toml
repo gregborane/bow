@@ -9,9 +9,6 @@ description = "BOW chromatography column simulation"
 requires-python = ">=3.11"
 dependencies = ["numpy", "scipy", "matplotlib"]
 
-[project.scripts]
-bow-sim = "Column_Simulation.experiments.VarInputs:console"
-
 [tool.setuptools.packages.find]
-include = ["Column_Simulation", "Column_Simulation.*"]
+include = ["bow.Column_Simulation", "bow.Column_Simulation.*"]
 namespaces = false
