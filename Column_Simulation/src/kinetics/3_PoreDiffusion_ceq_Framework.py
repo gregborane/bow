@@ -5,7 +5,6 @@ indices. Independent states are c[:,1:], q (all radii), and cm[1:-1].
 The surface c and column endpoints are algebraic and reconstructed for every
 RHS evaluation and output. Surface q is a diagnostic at a zero-storage node.
 """
-from importlib import import_module
 from types import SimpleNamespace
 
 import numpy as np
@@ -28,7 +27,7 @@ class PoreModel:
             raise ValueError("Need Nz and Nr >= 3 and matching species counts")
         # Optional measured/simulated gradient tables, time by axial position.
         # Never infer a spatial gradient from just the feed endpoints.
-        self.positions = np.linspace(0, inputs.L, self.nz)
+        self.positions = inputs.z
         self.profiles = {}
         if inputs.ElutionType != 1:
             for name in self.profile_names:
@@ -51,13 +50,9 @@ class PoreModel:
                                                     allow_zero=name != 'De'))
         self.kf = _species_parameter([inputs.GetSpeciesResults(s).kf for s in inputs.species],
                                      self.nc, "kf", allow_zero=True)
-        self.radius = inputs.Rp  # StoreInput.Rp in µm, diffusivities in cm²/s
+        self.radius = inputs.Rp  # m
         if not (0 < inputs.ep_p <= 1 and inputs.v > 0 and self.radius > 0):
             raise ValueError("Expected positive flow, radius and particle porosity <= 1")
-        if space is None:
-            backend = import_module("solvers.1_finite_difference_method")
-            space = backend.SpatialOperators(np.linspace(0, inputs.L, self.nz),
-                                             np.linspace(self.radius, 0, self.nr))
         self.space = space
         self.c_shape = (self.nz, self.nr - 1, self.nc)
         self.q_shape = (self.nz, self.nr, self.nc)
@@ -94,10 +89,7 @@ class PoreModel:
         dq = self.adsorption(t, c, q)
         flux = self.kf * (cm - c[:, 0])
         diffusion = self.space.particle_interior(c, self.De, flux)
-        dc = (
-            diffusion
-            - (1.0 - self.p.ep_p) * dq[:, 1:]
-            ) / self.p.ep_p        
+        dc = ( diffusion - dq[:, 1:] ) / self.p.ep_p        
         dcm = (-self.p.v * self.space.first(cm, self.p.v) + self.Dl * self.space.second(cm)
                - self.p.theta * self.coupling(c, cm))
         return self.pack(dc, dq, dcm[1:-1])
@@ -109,6 +101,7 @@ class PoreModel:
         n = sum(np.prod(s) for s in (self.c_shape, self.q_shape, self.cm_shape))
         ci, qi, mi = self.unpack(np.arange(n))
         pattern = lil_matrix((n, n), dtype=bool)
+        reach = getattr(self.space, "axial_radius", 1)
         for z in range(self.nz):
             bulk = mi[np.clip(z - 1, 0, self.nz - 3)]
             for r in range(self.nr):
@@ -117,7 +110,7 @@ class PoreModel:
                 cols = np.r_[qi[z, r], ci[z, max(0, j-1):j+2].ravel(), bulk]
                 pattern[np.ix_(rows, cols)] = True
             if 0 < z < self.nz - 1:
-                cols = np.r_[mi[max(0, z-2):z+1].ravel(), ci[z, 0]]
+                cols = np.r_[mi[max(0, z-1-reach):z+reach].ravel(), ci[z, 0]]
                 pattern[np.ix_(bulk, cols)] = True
         return pattern.tocsc()
 
@@ -126,7 +119,8 @@ class PoreModel:
         p = self.p
         times = np.asarray(p.tspan)
         initial = self.pack(*(np.zeros(s) for s in (self.c_shape, self.q_shape, self.cm_shape)))
-        pattern = self.sparsity() if getattr(self.space, "local_three_point", False) else None
+        pattern = self.sparsity() if (getattr(self.space, "local_three_point", False)
+                                      or hasattr(self.space, "axial_radius")) else None
         states = np.empty((len(times), initial.size))
         edges = sorted({0., float(np.clip(p.tinj, 0, p.tfinal)), float(p.tfinal)})
         for start, end in zip(edges, edges[1:]):
@@ -160,7 +154,7 @@ class Model(PoreModel):
         elif self.p.IsothermModel == 2:
             equilibrium = self.iso.c_eq(physical_q, c_context=np.maximum(c, 0))
         else:  # Linear equilibrium is independent of salt and pH.
-            equilibrium = self.iso.c_eq(physical_q)
+            equilibrium = np.copysign(self.iso.c_eq(np.abs(q)), q)
         return self.kb * (c - equilibrium)
 
     def coupling(self, c, cm):

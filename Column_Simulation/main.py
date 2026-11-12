@@ -8,24 +8,6 @@ from Column_Simulation.src.misc.results_output import (
 )
 
 
-def select_backend():
-    import matplotlib
-
-    try:
-        from IPython import get_ipython
-        shell = get_ipython()
-        jupyter_repl = (
-            shell is not None
-            and shell.__class__.__name__ == "ZMQInteractiveShell"
-        )
-    except ImportError:
-        jupyter_repl = False
-
-    if jupyter_repl:
-        matplotlib.use("module://matplotlib_inline.backend_inline")
-    else:
-        matplotlib.use("QtAgg")
-
 def display_model(isotherm, kinetic, solver):
     print('\n========= SIMULATION FUNCTION AND ALGORITHM SELECTED ==========\n')
     print(f'Isotherm Model selected is : {isotherm.stem}')
@@ -47,7 +29,6 @@ def selected(group, identifier):
 def run(inputs, experiment_id=DEFAULT_EXPERIMENT_ID, output_dir=None,
         config_file=None,):
     """Run the selected pore experiment and return time-indexed fields."""
-    import numpy as np
 
     kinetic, kinetics_model = selected("kinetics", inputs.KineticModel)
     isotherm, equilibrium = selected("isotherms", inputs.IsothermModel)
@@ -68,8 +49,7 @@ def run(inputs, experiment_id=DEFAULT_EXPERIMENT_ID, output_dir=None,
     species = list(inputs.species.values())
     iso = isotherm_class(
         [s.K for s in species], [s.qm for s in species])
-    space = backend.SpatialOperators(np.linspace(0, inputs.L, inputs.Nz),
-                                     np.linspace(inputs.Rp, 0, inputs.Nr))
+    space = backend.SpatialOperators(inputs.z, inputs.r)
     
     results = kinetics_model.Model(inputs, iso, space).simulate()
     

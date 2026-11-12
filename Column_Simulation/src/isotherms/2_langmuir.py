@@ -17,8 +17,7 @@ class Isotherm:
 
     For pore-diffusion Langmuir, omit `kinf` and `theta`.
     Inverse methods are available for the pure competitive Langmuir case
-    (kinf absent or zero). They deliberately reject nonzero `kinf`, since
-    the supplied MATLAB inverse omits that contribution.
+    (kinf absent or zero). Deliberately rejecting nonzero `kinf`.
     """
 
     K: ArrayLike
@@ -64,16 +63,14 @@ class Isotherm:
             c_i = q_i / [qm_i*K_i*(1 - S)]
         This requires S < 1 at every grid location.
 
-        When c_context is supplied, reproduce the *MATLAB componentwise*
+        When c_context is supplied, 
         inverse, which treats competing c_j as given (j != i):
             c_i = q_i*(1 + sum_{j!=i} K_j*c_j)/(K_i*(qm_i - q_i))
 
-        The MATLAB componentwise formula is useful in iterative c-based
-        transport models but is not an independent simultaneous inversion.
         """
         if self.kinf is not None and np.any(self.kinf > 0):
             raise NotImplementedError(
-                "The MATLAB c_eq formula ignores kinf/theta. "
+                "ignores kinf/theta. "
                 "Use a coupled nonlinear inverse for nonzero kinf."
             )
         q = _state(q, self.nc, "q")
@@ -90,7 +87,7 @@ class Isotherm:
         except ValueError as exc:
             raise ValueError("q and c_context have incompatible grid shapes") from exc
         if np.any(q >= self.qm):
-            raise ValueError("MATLAB componentwise inverse requires q_i < qm_i")
+            raise ValueError("Requires q_i < qm_i")
         other = np.sum(self.K * c, axis=-1, keepdims=True) - self.K * c
         return q * (1.0 + other) / (self.K * (self.qm - q))
 # %%

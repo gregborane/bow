@@ -90,7 +90,7 @@ class StoreInput:
     DERIVED_NAMES = (
         "Rp", "Ac", "Vc", "u", "v", "tfinal", "tspan", "tinj", "twash",
         "theta", "km", "kinf", "dz", "dr", "tG", "Bs", "BpH", "gamma",
-        "Re",
+        "Re", "z", "r"
     )
 
     species: dict[str, SpeciesParameters]
@@ -149,6 +149,8 @@ class StoreInput:
         # Numerical grid
         self.dz: float          # m
         self.dr: float          # m
+        self.z: float           # m
+        self.r: float           # m
 
         # Elution parameters
         self.tG: float          # s
@@ -294,6 +296,8 @@ class StoreInput:
         self.kinf = self.theta * self.ep_p
 
     def _calculate_spatial_grid(self):
+        self.z = np.linspace(0, self.L, self.Nz)
+        self.r = np.linspace(self.Rp, 0, self.Nr)
         self.dz = self.L / (self.Nz - 1)             # m
         # Rp is stored in m; dr is required in m.
         self.dr = (self.Rp) / (self.Nr - 1)          # m
@@ -334,8 +338,8 @@ class StoreInput:
                     * self.Re ** 0.33
                     * results.Sc ** 0.33
                 )
-                if not results.kf:
-                    results.kf = results.Sh * parameters.Do / dp
+                results.kf = (results.Sh * parameters.Do / dp if parameters.kf is None
+                              else parameters.kf)
 
             self.species_results[name] = results
 

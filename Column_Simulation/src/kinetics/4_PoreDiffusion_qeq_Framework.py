@@ -17,6 +17,8 @@ class Model(PoreModel):
         physical_c = np.maximum(c, 0)
         if hasattr(self.iso, "pore_q_eq"):
             equilibrium = self.iso.pore_q_eq(physical_c, **self.environment(t))
+        elif self.p.IsothermModel ==1:
+            equilibrium = np.copysign(self.iso.q_eq(np.abs(c)), c)
         else:
             equilibrium = self.iso.q_eq(physical_c)
         return self.kb * (equilibrium - q)

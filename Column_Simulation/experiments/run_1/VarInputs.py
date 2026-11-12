@@ -61,9 +61,9 @@ def build_inputs() -> StoreInput:
     # ============================================================
     
     inputs.AddSpecies("Protein_A", SpeciesParameters(
-        Do = 1e-7,           # VarInputs molecular diffusivity; CADET has no separate Do field
-        kc = 0,          # Same numeric value as CADET mclldf_kkin (inactive: is_kinetic=0)
-        K = 1e-9,        # CADET mclldf_keq = 0; preserves the reference's zero-affinity case
+        Do = 1e-7,          # fail safe if kf is not provided
+        kc = 0,             # Same numeric value as CADET mclldf_kkin (inactive: is_kinetic=0)
+        K = 2,              # CADET mclldf_keq = 0; preserves the reference's zero-affinity case
         qm = 1.0,            # CADET mclldf_qmax
         kb = 0.33,           # No separate counterpart in CADET's quasi-stationary LDF setup
         Dl = 2e-7,           # CADET col_dispersion (m^2/s)
@@ -81,11 +81,9 @@ def build_inputs() -> StoreInput:
     # CADET reference: Q = 1e-7 m^3/s, t_inj = 30 s, t_final = 1200 s.
     # Vc = A*L = 6.2321344266e-5 m^3, so CV = Q*t/Vc.
     inputs.Q = 1.0e-7                  # CADET connection flow rate (m^3/s)
-    inputs.CVfinal = 1.9255040374      # Q*1200/Vc: total duration using geometric bed volume
-    # If this project defines 1 CV as the interstitial volume e*Vc instead,
-    # use CVfinal=5.204064966 and CVwash=5.073963342 below.
+    inputs.CVfinal = 4                 # Number of total CV
     inputs.Nt = 601                    # CADET user_solution_times has 601 points
-    inputs.Nz = 40                     # CADET set_discretization(..., n_col=40)
+    inputs.Nz = 60                     # CADET set_discretization(..., n_col=40)
     inputs.Nr = 5                      # Assumes the common set_discretization helper default n_par=5
 
     # Pulse mode only (InputType = 2)
@@ -99,7 +97,7 @@ def build_inputs() -> StoreInput:
     inputs.InputType = 2               # Pulse: inlet concentration 1 until 30 s, then 0
     inputs.ElutionType = 1             # Isocratic: no salt or pH gradient
     inputs.KineticModel = 4            # Pore-diffusion model, matching CADET GENERAL_RATE_MODEL
-    inputs.SolverModel = 1             # FDM
+    inputs.SolverModel = 5             # FDM
     inputs.IsothermModel = 2           # Langmuir
 
     # =========================================================
@@ -186,8 +184,7 @@ def run_simulation(custom_inputs=None, *, experiment_id=None):
         config_file=_config_source() if EXPORT_CONFIG else None,
     )
 
-results_raw = run_simulation()
-results, names = prepare_table(results_raw, inputs.species)
+results, names = prepare_table(run_simulation(), inputs.species)
 
 time = results[:, 0] 
 c = results[:, 1]
@@ -209,5 +206,4 @@ plt.legend()
 plt.savefig('./run_1/run.png')
 plt.show() 
 
-# %%
 

@@ -51,10 +51,12 @@ class ErrorDetection:
         if kinetic not in range(1, 7):
             raise ValueError(f"KineticModel must be between 1 and 6; got {kinetic}")
     
-    def ValidateSolver(self, solver: int):
+    def ValidateSolver(self, solver: int, Nz: int):
         """1-5 = documented rate-model selections."""
-        if solver not in range(1, 5):
+        if solver not in range(1, 6):
             raise ValueError(f"SolverModel must be between 1 and 5; got {solver}")
+        elif solver == 5 and Nz <= 7:
+            raise ValueError(f'WENO can work only for Nz >= 7 actual; got {Nz}')
 
     def ValidateIsotherm(self, isotherm: int, kinetic: int):
         """Keep the original allowed isotherms for each solver."""
@@ -70,7 +72,6 @@ class ErrorDetection:
                 f"IsothermModel {isotherm} is not supported by KineticModel "
                 f"{kinetic}; allowed values: {sorted(allowed)}"
             )
-        # As in the original project, no combinations are specified for solvers 5 or 6.
 
     def CheckRequiredInputs(self, input: StoreInput):
         """Require shared and species-specific inputs for the selected models."""
@@ -149,7 +150,7 @@ class ErrorDetection:
         self.ValidateInput(input.InputType)
         self.ValidateElution(input.ElutionType)
         self.ValidateRate(input.KineticModel)
-        self.ValidateSolver(input.SolverModel)
+        self.ValidateSolver(input.SolverModel, input.Nz)
         self.ValidateIsotherm(input.IsothermModel, input.KineticModel)
         self.CheckRanges(input)
         return input
